@@ -18,6 +18,10 @@ const roleBadge: Record<AdminRole, string> = {
   superadmin: "text-purple-400 bg-purple-400/10 border-purple-400/20",
   admin: "text-blue-400 bg-blue-400/10 border-blue-400/20",
 };
+const roleLabel: Record<AdminRole, string> = {
+  superadmin: "Bosh admin",
+  admin: "Admin",
+};
 
 function Avatar({ name }: { name: string }) {
   return (
@@ -27,7 +31,17 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-// ─── Create Admin Modal ─────────────────────────────────────────────────────
+const inputCls = "w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40";
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-xs text-muted-foreground block mb-1">{label}</label>
+      {children}
+    </div>
+  );
+}
+
 function CreateModal({ onClose }: { onClose: () => void }) {
   const create = useCreateAdmin();
   const [email, setEmail] = useState("");
@@ -45,7 +59,7 @@ function CreateModal({ onClose }: { onClose: () => void }) {
       setDone(true);
       setTimeout(onClose, 900);
     } catch (err) {
-      setError(errMsg(err, "Could not create admin"));
+      setError(errMsg(err, "Admin qo'shilmadi"));
     }
   };
 
@@ -53,40 +67,36 @@ function CreateModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">Add Admin</h3>
+          <h3 className="text-sm font-semibold text-foreground">Admin qo'shish</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
         </div>
         {done ? (
           <div className="flex flex-col items-center gap-2 py-4">
             <CheckCircle size={32} className="text-emerald-400" />
-            <p className="text-sm text-foreground">Admin created!</p>
+            <p className="text-sm text-foreground">Admin qo'shildi!</p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
             <Field label="Email">
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                className={inputCls} placeholder="admin@example.com" />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="admin@example.com" />
             </Field>
-            <Field label="Name">
-              <input value={name} onChange={(e) => setName(e.target.value)}
-                className={inputCls} placeholder="Full name" />
+            <Field label="Ism">
+              <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="To'liq ism" />
             </Field>
-            <Field label="Password (min 6)">
-              <input type="text" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
-                className={inputCls} placeholder="••••••••" />
+            <Field label="Parol (kamida 6 belgi)">
+              <input type="text" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="Parol" />
             </Field>
-            <Field label="Role">
+            <Field label="Rol">
               <select value={role} onChange={(e) => setRole(e.target.value as AdminRole)} className={inputCls}>
-                <option value="admin">admin</option>
-                <option value="superadmin">superadmin</option>
+                <option value="admin">Admin</option>
+                <option value="superadmin">Bosh admin</option>
               </select>
             </Field>
             {error && <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</p>}
             <div className="flex gap-2 mt-5">
-              <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
-              <button type="submit" disabled={create.isPending}
-                className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
-                {create.isPending && <Loader2 size={13} className="animate-spin" />} Create
+              <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">Bekor</button>
+              <button type="submit" disabled={create.isPending} className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
+                {create.isPending && <Loader2 size={13} className="animate-spin" />} Qo'shish
               </button>
             </div>
           </form>
@@ -96,7 +106,6 @@ function CreateModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ─── Change Password Modal ──────────────────────────────────────────────────
 function PasswordModal({ admin, onClose }: { admin: AdminAccount; onClose: () => void }) {
   const update = useUpdateAdmin();
   const [password, setPassword] = useState("");
@@ -111,7 +120,7 @@ function PasswordModal({ admin, onClose }: { admin: AdminAccount; onClose: () =>
       setDone(true);
       setTimeout(onClose, 900);
     } catch (err) {
-      setError(errMsg(err, "Could not change password"));
+      setError(errMsg(err, "Parol o'zgartirilmadi"));
     }
   };
 
@@ -119,27 +128,25 @@ function PasswordModal({ admin, onClose }: { admin: AdminAccount; onClose: () =>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">Change Password</h3>
+          <h3 className="text-sm font-semibold text-foreground">Parolni o'zgartirish</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
         </div>
         {done ? (
           <div className="flex flex-col items-center gap-2 py-4">
             <CheckCircle size={32} className="text-emerald-400" />
-            <p className="text-sm text-foreground">Password updated!</p>
+            <p className="text-sm text-foreground">Parol yangilandi!</p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
-            <p className="text-xs text-muted-foreground">For <span className="text-foreground font-medium">{admin.email}</span></p>
-            <Field label="New password (min 6)">
-              <input type="text" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
-                className={inputCls} placeholder="New password" />
+            <p className="text-xs text-muted-foreground"><span className="text-foreground font-medium">{admin.email}</span> uchun</p>
+            <Field label="Yangi parol (kamida 6 belgi)">
+              <input type="text" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="Yangi parol" />
             </Field>
             {error && <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</p>}
             <div className="flex gap-2 mt-5">
-              <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
-              <button type="submit" disabled={update.isPending}
-                className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
-                {update.isPending && <Loader2 size={13} className="animate-spin" />} Save
+              <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">Bekor</button>
+              <button type="submit" disabled={update.isPending} className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
+                {update.isPending && <Loader2 size={13} className="animate-spin" />} Saqlash
               </button>
             </div>
           </form>
@@ -149,18 +156,6 @@ function PasswordModal({ admin, onClose }: { admin: AdminAccount; onClose: () =>
   );
 }
 
-const inputCls = "w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40";
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-xs text-muted-foreground block mb-1">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-// ─── Main Page ──────────────────────────────────────────────────────────────
 export default function Admins() {
   const { data, isLoading, error } = useAdmins();
   const update = useUpdateAdmin();
@@ -171,29 +166,22 @@ export default function Admins() {
 
   const forbidden = (error as { response?: { status?: number } })?.response?.status === 403;
 
-  const toggleActive = (a: AdminAccount) =>
-    update.mutate({ id: a.id, input: { is_active: !a.is_active } });
-
-  const toggleRole = (a: AdminAccount) =>
-    update.mutate({ id: a.id, input: { role: a.role === "superadmin" ? "admin" : "superadmin" } });
-
-  const remove = (a: AdminAccount) => {
-    if (confirm(`Delete admin ${a.email}?`)) del.mutate(a.id);
-  };
+  const toggleActive = (a: AdminAccount) => update.mutate({ id: a.id, input: { is_active: !a.is_active } });
+  const toggleRole = (a: AdminAccount) => update.mutate({ id: a.id, input: { role: a.role === "superadmin" ? "admin" : "superadmin" } });
+  const remove = (a: AdminAccount) => { if (confirm(`${a.email} adminni o'chirasizmi?`)) del.mutate(a.id); };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{data?.length ?? 0} admin account(s)</p>
-        <button onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors">
-          <Plus size={14} /> Add Admin
+        <p className="text-xs text-muted-foreground">{data?.length ?? 0} ta admin</p>
+        <button onClick={() => setCreateOpen(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors">
+          <Plus size={14} /> Admin qo'shish
         </button>
       </div>
 
       {forbidden && (
         <div className="bg-amber-400/10 border border-amber-400/20 rounded-xl p-4 text-xs text-amber-400">
-          Only a <b>superadmin</b> can manage admin accounts. Your role is <b>{me?.role}</b>.
+          Adminlarni faqat <b>bosh admin</b> boshqara oladi. Sizning rolingiz: <b>{me?.role}</b>.
         </div>
       )}
 
@@ -202,50 +190,46 @@ export default function Admins() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {["Admin", "Email", "Role", "Status", "Actions"].map((h) => (
+                {["Admin", "Email", "Rol", "Holat", "Amallar"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-muted-foreground font-medium">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {isLoading && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  <Loader2 size={18} className="animate-spin inline" />
-                </td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground"><Loader2 size={18} className="animate-spin inline" /></td></tr>
               )}
               {!isLoading && (data ?? []).map((a) => (
                 <tr key={a.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <Avatar name={a.name} />
-                      <span className="font-medium text-foreground">
-                        {a.name}{me?.id === String(a.id) && <span className="text-muted-foreground"> (you)</span>}
-                      </span>
+                      <span className="font-medium text-foreground">{a.name}{me?.id === String(a.id) && <span className="text-muted-foreground"> (siz)</span>}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono">{a.email}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-medium ${roleBadge[a.role]}`}>
-                      {a.role === "superadmin" ? <ShieldCheck size={9} /> : <Shield size={9} />} {a.role}
+                      {a.role === "superadmin" ? <ShieldCheck size={9} /> : <Shield size={9} />} {roleLabel[a.role]}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${a.is_active ? "text-emerald-400 bg-emerald-400/10" : "text-muted-foreground bg-muted/50"}`}>
-                      {a.is_active ? "Active" : "Disabled"}
+                      {a.is_active ? "Faol" : "O'chirilgan"}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => setPwAdmin(a)} title="Change password" className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><KeyRound size={13} /></button>
-                      <button onClick={() => toggleRole(a)} title="Toggle role" className="p-1.5 rounded hover:bg-purple-400/10 text-muted-foreground hover:text-purple-400 transition-colors"><RotateCw size={13} /></button>
-                      <button onClick={() => toggleActive(a)} disabled={me?.id === String(a.id)} title={a.is_active ? "Disable" : "Enable"} className="p-1.5 rounded hover:bg-amber-400/10 text-muted-foreground hover:text-amber-400 disabled:opacity-30 transition-colors"><Ban size={13} /></button>
-                      <button onClick={() => remove(a)} disabled={me?.id === String(a.id)} title="Delete" className="p-1.5 rounded hover:bg-red-400/10 text-muted-foreground hover:text-red-500 disabled:opacity-30 transition-colors"><Trash2 size={13} /></button>
+                      <button onClick={() => setPwAdmin(a)} title="Parolni o'zgartirish" className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><KeyRound size={13} /></button>
+                      <button onClick={() => toggleRole(a)} title="Rolni almashtirish" className="p-1.5 rounded hover:bg-purple-400/10 text-muted-foreground hover:text-purple-400 transition-colors"><RotateCw size={13} /></button>
+                      <button onClick={() => toggleActive(a)} disabled={me?.id === String(a.id)} title={a.is_active ? "O'chirish" : "Yoqish"} className="p-1.5 rounded hover:bg-amber-400/10 text-muted-foreground hover:text-amber-400 disabled:opacity-30 transition-colors"><Ban size={13} /></button>
+                      <button onClick={() => remove(a)} disabled={me?.id === String(a.id)} title="O'chirish" className="p-1.5 rounded hover:bg-red-400/10 text-muted-foreground hover:text-red-500 disabled:opacity-30 transition-colors"><Trash2 size={13} /></button>
                     </div>
                   </td>
                 </tr>
               ))}
               {!isLoading && !forbidden && (data ?? []).length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No admins</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Adminlar yo'q</td></tr>
               )}
             </tbody>
           </table>

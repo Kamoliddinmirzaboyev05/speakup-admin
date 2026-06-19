@@ -1,36 +1,25 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router";
 import {
-  LayoutDashboard, Users, Trophy, Mic, BookOpen, CreditCard,
-  Gift, Settings, Activity, LogOut, ChevronLeft, ChevronRight,
-  Bell, Search, Menu, X, Bot, ShieldCheck,
+  LayoutDashboard, Users, Trophy, Mic, LogOut, ChevronLeft, ChevronRight,
+  Menu, X, Bot, ShieldCheck,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 
 const NAV = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/users", icon: Users, label: "Users" },
-  { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
-  { to: "/sessions", icon: Mic, label: "Sessions" },
-  { to: "/content", icon: BookOpen, label: "Content" },
-  { to: "/payments", icon: CreditCard, label: "Payments" },
-  { to: "/bonuses", icon: Gift, label: "Bonuses" },
-  { to: "/settings", icon: Settings, label: "Settings" },
-  { to: "/admins", icon: ShieldCheck, label: "Admins" },
-  { to: "/activity", icon: Activity, label: "Activity Log" },
+  { to: "/", icon: LayoutDashboard, label: "Boshqaruv" },
+  { to: "/users", icon: Users, label: "Foydalanuvchilar" },
+  { to: "/leaderboard", icon: Trophy, label: "Reyting" },
+  { to: "/sessions", icon: Mic, label: "Sessiyalar" },
+  { to: "/admins", icon: ShieldCheck, label: "Adminlar" },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
-  "/": "Dashboard",
-  "/users": "Users",
-  "/leaderboard": "Leaderboard",
-  "/sessions": "Sessions",
-  "/content": "Content",
-  "/payments": "Payments",
-  "/bonuses": "Bonuses",
-  "/settings": "Settings",
-  "/admins": "Admins",
-  "/activity": "Activity Log",
+  "/": "Boshqaruv paneli",
+  "/users": "Foydalanuvchilar",
+  "/leaderboard": "Reyting",
+  "/sessions": "Sessiyalar",
+  "/admins": "Adminlar",
 };
 
 function Avatar({ name, size = "sm" }: { name: string; size?: "sm" | "md" }) {
@@ -67,8 +56,8 @@ export default function Layout() {
         </div>
         {!sidebarCollapsed && (
           <div>
-            <div className="text-sm font-semibold text-sidebar-foreground leading-none">Sayra AI</div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">Admin Panel</div>
+            <div className="text-sm font-semibold text-sidebar-foreground leading-none">SpeakUp</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">Admin panel</div>
           </div>
         )}
       </div>
@@ -116,7 +105,7 @@ export default function Layout() {
           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all ${sidebarCollapsed ? "justify-center" : ""}`}
         >
           <LogOut size={16} />
-          {!sidebarCollapsed && <span>Logout</span>}
+          {!sidebarCollapsed && <span>Chiqish</span>}
         </button>
       </div>
     </div>
@@ -158,17 +147,6 @@ export default function Layout() {
           </button>
           <h1 className="text-base font-semibold text-foreground">{pageTitle}</h1>
           <div className="flex-1" />
-          <div className="hidden sm:flex items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 py-1.5 w-48">
-            <Search size={14} className="text-muted-foreground" />
-            <input
-              placeholder="Quick search…"
-              className="bg-transparent text-xs outline-none text-foreground placeholder:text-muted-foreground w-full"
-            />
-          </div>
-          <button className="relative text-muted-foreground hover:text-foreground transition-colors p-1.5">
-            <Bell size={18} />
-            <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-primary rounded-full" />
-          </button>
           {admin && <Avatar name={admin.name} />}
         </header>
 

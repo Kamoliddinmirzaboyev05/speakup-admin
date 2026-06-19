@@ -19,7 +19,7 @@ export default function Login() {
     const ok = await login(email, password);
     setLoading(false);
     if (ok) navigate("/");
-    else setError("Invalid email or password");
+    else setError("Email yoki parol noto'g'ri");
   };
 
   return (
@@ -42,13 +42,13 @@ export default function Login() {
               <Bot size={20} className="text-white" />
             </div>
             <div>
-              <div className="text-base font-semibold text-foreground">Sayra AI</div>
-              <div className="text-xs text-muted-foreground">Admin Panel</div>
+              <div className="text-base font-semibold text-foreground">SpeakUp</div>
+              <div className="text-xs text-muted-foreground">Admin panel</div>
             </div>
           </div>
 
-          <h2 className="text-xl font-semibold text-foreground mb-1">Sign in</h2>
-          <p className="text-sm text-muted-foreground mb-6">Enter your admin credentials to continue</p>
+          <h2 className="text-xl font-semibold text-foreground mb-1">Kirish</h2>
+          <p className="text-sm text-muted-foreground mb-6">Davom etish uchun admin ma'lumotlaringizni kiriting</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -64,7 +64,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Password</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Parol</label>
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
@@ -96,12 +96,12 @@ export default function Login() {
               className="w-full bg-primary hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-all mt-2"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-              {loading ? "Signing in…" : "Sign in"}
+              {loading ? "Kirilmoqda…" : "Kirish"}
             </button>
           </form>
 
           <p className="text-xs text-muted-foreground text-center mt-6">
-            Sayra AI Admin Panel · Access restricted
+            SpeakUp Admin panel · Faqat ruxsat etilganlar uchun
           </p>
         </div>
       </div>

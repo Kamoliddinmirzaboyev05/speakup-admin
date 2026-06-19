@@ -1,9 +1,8 @@
 /**
- * react-query hooks over the admin data service. Pages consume these instead
- * of importing mock data directly, so the data source is swappable in one place.
+ * react-query hooks over the real admin API.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { adminService } from "@/services/admin";
+import { adminService, type UserQuery } from "@/services/admin";
 import {
   adminsService,
   type AdminCreateInput,
@@ -11,46 +10,28 @@ import {
 } from "@/services/admins";
 
 export const queryKeys = {
+  stats: ["stats"] as const,
   users: ["users"] as const,
   sessions: ["sessions"] as const,
-  payments: ["payments"] as const,
-  plans: ["plans"] as const,
-  questions: ["questions"] as const,
-  leaderboard: ["leaderboard"] as const,
-  promoCodes: ["promo-codes"] as const,
-  activity: ["activity"] as const,
-  dashboard: ["dashboard"] as const,
   admins: ["admins"] as const,
 };
 
-export const useUsers = () =>
-  useQuery({ queryKey: queryKeys.users, queryFn: adminService.getUsers });
+export const useStats = () =>
+  useQuery({ queryKey: queryKeys.stats, queryFn: adminService.getStats });
 
-export const useSessions = () =>
-  useQuery({ queryKey: queryKeys.sessions, queryFn: adminService.getSessions });
+export const useUsers = (params?: UserQuery) =>
+  useQuery({
+    queryKey: [...queryKeys.users, params ?? {}],
+    queryFn: () => adminService.getUsers(params),
+  });
 
-export const usePayments = () =>
-  useQuery({ queryKey: queryKeys.payments, queryFn: adminService.getPayments });
+export const useSessions = (params?: { limit?: number; offset?: number }) =>
+  useQuery({
+    queryKey: [...queryKeys.sessions, params ?? {}],
+    queryFn: () => adminService.getSessions(params),
+  });
 
-export const usePlans = () =>
-  useQuery({ queryKey: queryKeys.plans, queryFn: adminService.getPlans });
-
-export const useQuestions = () =>
-  useQuery({ queryKey: queryKeys.questions, queryFn: adminService.getQuestions });
-
-export const useLeaderboard = () =>
-  useQuery({ queryKey: queryKeys.leaderboard, queryFn: adminService.getLeaderboard });
-
-export const usePromoCodes = () =>
-  useQuery({ queryKey: queryKeys.promoCodes, queryFn: adminService.getPromoCodes });
-
-export const useActivityLog = () =>
-  useQuery({ queryKey: queryKeys.activity, queryFn: adminService.getActivityLog });
-
-export const useDashboard = () =>
-  useQuery({ queryKey: queryKeys.dashboard, queryFn: adminService.getDashboard });
-
-// ── Admin accounts (real backend) ────────────────────────────────────────────
+// ── Admin accounts ───────────────────────────────────────────────────────────
 
 export const useAdmins = () =>
   useQuery({ queryKey: queryKeys.admins, queryFn: adminsService.list });

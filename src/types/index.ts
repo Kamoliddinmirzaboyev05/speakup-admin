@@ -1,133 +1,58 @@
+// Real domain types — mirror the backend admin API (snake_case JSON).
+
 export type UserLevel = "beginner" | "intermediate" | "advanced";
-export type UserStatus = "active" | "banned" | "inactive";
-export type SessionStatus = "completed" | "ongoing" | "cancelled";
-export type PaymentStatus = "paid" | "pending" | "failed" | "refunded";
-export type PaymentProvider = "telegram_stars" | "payme" | "click" | "stripe";
-export type PlanType = "free" | "premium_monthly" | "premium_yearly";
+export type Challenge = "grammar" | "fluency" | "vocabulary" | "pronunciation";
+export type Gender = "male" | "female" | "other";
 
-export interface User {
-  id: string;
-  telegramId: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  avatar?: string;
-  level: UserLevel;
-  status: UserStatus;
-  gender: "male" | "female" | "other";
-  country: string;
-  totalMinutes: number;
-  weeklyMinutes: number;
-  currentStreak: number;
-  longestStreak: number;
-  plan: PlanType;
-  bonusMinutes: number;
-  registeredAt: string;
-  lastActiveAt: string;
-  sessionsCount: number;
-  referralCode: string;
-  referredBy?: string;
-}
-
-export interface Session {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  partnerId?: string;
-  partnerName?: string;
-  duration: number;
-  status: SessionStatus;
-  startedAt: string;
-  endedAt?: string;
-  topic: string;
-  level: UserLevel;
-  rating?: number;
-}
-
-export interface Payment {
-  id: string;
-  userId: string;
-  userName: string;
-  amount: number;
-  currency: string;
-  plan: PlanType;
-  status: PaymentStatus;
-  provider: PaymentProvider;
-  createdAt: string;
-  paidAt?: string;
-}
-
-export interface Plan {
-  id: string;
-  type: PlanType;
-  name: string;
-  price: number;
-  currency: string;
-  durationDays: number;
-  features: string[];
-  minutesPerDay: number;
-  isActive: boolean;
-}
-
-export interface Question {
-  id: string;
-  topic: string;
-  level: UserLevel;
-  prompt: string;
-  aiPrompt: string;
-  category: string;
-  isActive: boolean;
-  createdAt: string;
-  usageCount: number;
-}
-
-export interface LeaderboardEntry {
-  rank: number;
-  userId: string;
-  userName: string;
-  avatar?: string;
-  weeklyMinutes: number;
-  totalMinutes: number;
+export interface AdminUser {
+  id: number;
+  telegram_id: number;
+  username: string | null;
+  first_name: string | null;
+  phone: string | null;
+  level: UserLevel | null;
+  gender: Gender | null;
+  location: string | null;
+  goal: string | null;
+  challenge: Challenge | null;
+  total_minutes: number;
   streak: number;
-  level: UserLevel;
-  country: string;
+  onboarded: boolean;
+  sessions_count: number;
+  created_at: string;
+  last_practice_date: string | null;
 }
 
-export interface PromoCode {
-  id: string;
-  code: string;
-  bonusMinutes: number;
-  maxUses: number;
-  usedCount: number;
-  expiresAt: string;
-  isActive: boolean;
-  createdAt: string;
+export interface AdminUserList {
+  items: AdminUser[];
+  total: number;
 }
 
-export interface ActivityLog {
-  id: string;
-  adminName: string;
-  action: string;
-  target: string;
-  targetId: string;
-  details: string;
-  createdAt: string;
+export interface AdminSession {
+  id: number;
+  user_id: number;
+  user_name: string | null;
+  partner_id: number | null;
+  partner_name: string | null;
+  is_ai: boolean;
+  topic: string | null;
+  duration_sec: number;
+  start_time: string;
+  end_time: string | null;
 }
 
-export interface DashboardStats {
-  totalUsers: number;
-  activeUsersToday: number;
-  totalMinutesThisWeek: number;
-  totalRevenue: number;
-  newUsersToday: number;
-  sessionsToday: number;
-  avgSessionDuration: number;
-  premiumUsers: number;
+export interface AdminSessionList {
+  items: AdminSession[];
+  total: number;
 }
 
-export interface ChartPoint {
-  date: string;
-  value: number;
-  secondary?: number;
+export interface AdminStats {
+  total_users: number;
+  onboarded_users: number;
+  active_today: number;
+  new_users_today: number;
+  sessions_today: number;
+  total_sessions: number;
+  total_minutes_week: number;
+  avg_session_min: number;
 }
