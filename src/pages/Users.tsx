@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search, X } from "lucide-react";
 import { useUsers } from "@/hooks/queries";
+import { SkeletonTableRows } from "@/components/Skeleton";
 import type { AdminUser, UserLevel } from "@/types";
 
 const levelLabel: Record<UserLevel, string> = {
@@ -111,7 +112,7 @@ export default function Users() {
               </tr>
             </thead>
             <tbody>
-              {isLoading && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Yuklanmoqda…</td></tr>}
+              {isLoading && <SkeletonTableRows rows={10} cols={8} />}
               {!isLoading && items.map((u) => {
                 const name = u.first_name || u.username || `#${u.id}`;
                 return (

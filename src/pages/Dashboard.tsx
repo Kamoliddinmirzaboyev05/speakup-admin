@@ -1,5 +1,6 @@
 import { Users, Mic, Clock, UserPlus, Zap, CheckCircle, Activity, Calendar } from "lucide-react";
 import { useStats, useSessions } from "@/hooks/queries";
+import { SkeletonCard, SkeletonTableRows } from "@/components/Skeleton";
 
 function StatCard({
   icon: Icon, label, value, color,
@@ -30,9 +31,17 @@ function fmtDur(sec: number) {
 
 export default function Dashboard() {
   const { data: s, isLoading } = useStats();
-  const { data: sessions } = useSessions({ limit: 8 });
+  const { data: sessions, isLoading: sessionsLoading } = useSessions({ limit: 8 });
 
-  if (isLoading || !s) return <div className="p-6 text-sm text-muted-foreground">Yuklanmoqda…</div>;
+  if (isLoading || !s) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -63,7 +72,8 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {(sessions?.items ?? []).map((ss) => (
+              {sessionsLoading && <SkeletonTableRows rows={6} cols={5} />}
+              {!sessionsLoading && (sessions?.items ?? []).map((ss) => (
                 <tr key={ss.id} className="border-b border-border/50 hover:bg-muted/20">
                   <td className="px-4 py-3 text-foreground font-medium">{ss.user_name ?? `#${ss.user_id}`}</td>
                   <td className="px-4 py-3 text-muted-foreground">{ss.partner_name ?? "—"}{ss.is_ai ? " · AI" : ""}</td>
@@ -74,7 +84,7 @@ export default function Dashboard() {
                   </td>
                 </tr>
               ))}
-              {(sessions?.items ?? []).length === 0 && (
+              {!sessionsLoading && (sessions?.items ?? []).length === 0 && (
                 <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Sessiyalar yo'q</td></tr>
               )}
             </tbody>

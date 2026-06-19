@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSessions } from "@/hooks/queries";
+import { SkeletonTableRows } from "@/components/Skeleton";
 
 function fmtDur(sec: number) {
   const m = Math.floor(sec / 60);
@@ -30,7 +31,7 @@ export default function Sessions() {
               </tr>
             </thead>
             <tbody>
-              {isLoading && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Yuklanmoqda…</td></tr>}
+              {isLoading && <SkeletonTableRows rows={10} cols={8} />}
               {!isLoading && items.map((ss) => (
                 <tr key={ss.id} className="border-b border-border/50 hover:bg-muted/20">
                   <td className="px-4 py-3 font-mono text-muted-foreground">{ss.id}</td>

@@ -1,5 +1,6 @@
 import { Trophy } from "lucide-react";
 import { useUsers } from "@/hooks/queries";
+import { SkeletonTableRows } from "@/components/Skeleton";
 import type { AdminUser } from "@/types";
 
 function medal(rank: number) {
@@ -33,7 +34,7 @@ export default function Leaderboard() {
               </tr>
             </thead>
             <tbody>
-              {isLoading && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Yuklanmoqda…</td></tr>}
+              {isLoading && <SkeletonTableRows rows={10} cols={5} />}
               {!isLoading && ranked.map((u, i) => {
                 const name = u.first_name || u.username || `#${u.id}`;
                 return (

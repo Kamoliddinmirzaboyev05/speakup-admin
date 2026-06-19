@@ -56,3 +56,61 @@ export interface AdminStats {
   total_minutes_week: number;
   avg_session_min: number;
 }
+
+// ── Billing ───────────────────────────────────────────────────────────────────
+
+export interface Plan {
+  id: number;
+  key: string;
+  title: string;
+  price_uzs: number;
+  price_stars: number;
+  duration_days: number;
+  is_popular: boolean;
+  active: boolean;
+  sort_order: number;
+}
+
+export type PlanInput = Omit<Plan, "id">;
+
+export type PaymentStatus = "pending" | "confirmed" | "rejected";
+export type PaymentMethod = "stars" | "card";
+
+export interface Payment {
+  id: number;
+  user_name: string | null;
+  telegram_id: number;
+  plan: string | null;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  amount_uzs: number | null;
+  amount_stars: number | null;
+  screenshot_file_id: string | null;
+  created_at: string;
+  confirmed_at: string | null;
+}
+
+export interface BillingStats {
+  revenue_uzs: number;
+  revenue_stars: number;
+  premium_users: number;
+  pending_payments: number;
+}
+
+export interface AdminSettings {
+  free_daily_minutes: number;
+  daily_bonus_minutes: number;
+  bonus_channel_username: string;
+  referral_tiers: [number, number][];
+  card_number: string;
+  card_holder: string;
+}
+
+export interface Feedback {
+  id: number;
+  name: string | null;
+  rating: number;
+  text: string;
+  approved: boolean;
+  created_at: string;
+}

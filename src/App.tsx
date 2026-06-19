@@ -10,6 +10,9 @@ import Leaderboard from "@/pages/Leaderboard";
 import Sessions from "@/pages/Sessions";
 import Questions from "@/pages/Questions";
 import Admins from "@/pages/Admins";
+import Payments from "@/pages/Payments";
+import Plans from "@/pages/Plans";
+import Settings from "@/pages/Settings";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -38,6 +41,9 @@ export default function App() {
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="sessions" element={<Sessions />} />
               <Route path="questions" element={<Questions />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="plans" element={<Plans />} />
+              <Route path="settings" element={<Settings />} />
               <Route path="admins" element={<Admins />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
