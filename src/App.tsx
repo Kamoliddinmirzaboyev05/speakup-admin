@@ -13,6 +13,7 @@ import Payments from "@/pages/Payments";
 import Bonuses from "@/pages/Bonuses";
 import Settings from "@/pages/Settings";
 import ActivityLog from "@/pages/ActivityLog";
+import Admins from "@/pages/Admins";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="payments" element={<Payments />} />
               <Route path="bonuses" element={<Bonuses />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="admins" element={<Admins />} />
               <Route path="activity" element={<ActivityLog />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

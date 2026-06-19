@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_URL ?? "http://localhost:8000";
+// Prefer VITE_API_URL. Otherwise prod builds hit the live API; dev uses localhost.
+const _env = (import.meta as unknown as { env: Record<string, string> }).env;
+const BASE_URL =
+  _env?.VITE_API_URL ||
+  (_env?.PROD ? "https://speakupapi.webportfolio.uz" : "http://localhost:8000");
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -41,6 +45,8 @@ export const api = {
     apiClient.post<T>(url, data).then((r) => r.data),
   put: <T>(url: string, data?: object) =>
     apiClient.put<T>(url, data).then((r) => r.data),
+  patch: <T>(url: string, data?: object) =>
+    apiClient.patch<T>(url, data).then((r) => r.data),
   delete: <T>(url: string) =>
     apiClient.delete<T>(url).then((r) => r.data),
 };

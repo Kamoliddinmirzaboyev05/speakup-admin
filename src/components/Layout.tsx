@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router";
 import {
   LayoutDashboard, Users, Trophy, Mic, BookOpen, CreditCard,
   Gift, Settings, Activity, LogOut, ChevronLeft, ChevronRight,
-  Bell, Search, Menu, X, Bot,
+  Bell, Search, Menu, X, Bot, ShieldCheck,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 
@@ -16,6 +16,7 @@ const NAV = [
   { to: "/payments", icon: CreditCard, label: "Payments" },
   { to: "/bonuses", icon: Gift, label: "Bonuses" },
   { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/admins", icon: ShieldCheck, label: "Admins" },
   { to: "/activity", icon: Activity, label: "Activity Log" },
 ];
 
@@ -28,6 +29,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/payments": "Payments",
   "/bonuses": "Bonuses",
   "/settings": "Settings",
+  "/admins": "Admins",
   "/activity": "Activity Log",
 };
 

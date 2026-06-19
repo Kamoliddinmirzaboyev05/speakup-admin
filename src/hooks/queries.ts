@@ -2,8 +2,13 @@
  * react-query hooks over the admin data service. Pages consume these instead
  * of importing mock data directly, so the data source is swappable in one place.
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminService } from "@/services/admin";
+import {
+  adminsService,
+  type AdminCreateInput,
+  type AdminUpdateInput,
+} from "@/services/admins";
 
 export const queryKeys = {
   users: ["users"] as const,
@@ -15,6 +20,7 @@ export const queryKeys = {
   promoCodes: ["promo-codes"] as const,
   activity: ["activity"] as const,
   dashboard: ["dashboard"] as const,
+  admins: ["admins"] as const,
 };
 
 export const useUsers = () =>
@@ -43,3 +49,33 @@ export const useActivityLog = () =>
 
 export const useDashboard = () =>
   useQuery({ queryKey: queryKeys.dashboard, queryFn: adminService.getDashboard });
+
+// ── Admin accounts (real backend) ────────────────────────────────────────────
+
+export const useAdmins = () =>
+  useQuery({ queryKey: queryKeys.admins, queryFn: adminsService.list });
+
+export const useCreateAdmin = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: AdminCreateInput) => adminsService.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.admins }),
+  });
+};
+
+export const useUpdateAdmin = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number; input: AdminUpdateInput }) =>
+      adminsService.update(id, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.admins }),
+  });
+};
+
+export const useDeleteAdmin = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => adminsService.remove(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.admins }),
+  });
+};
