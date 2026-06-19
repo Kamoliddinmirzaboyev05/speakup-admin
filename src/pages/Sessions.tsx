@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, Filter, Download, X, Clock, CheckCircle, XCircle, Radio, Star } from "lucide-react";
-import { mockSessions } from "../data/mock";
+import { useSessions } from "@/hooks/queries";
 import type { Session, SessionStatus, UserLevel } from "../types";
 
 const statusBadge: Record<SessionStatus, { cls: string; icon: React.ElementType; label: string }> = {
@@ -93,6 +93,7 @@ function exportCSV(sessions: Session[]) {
 }
 
 export default function Sessions() {
+  const { data: sessions = [] } = useSessions();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
@@ -101,13 +102,13 @@ export default function Sessions() {
   const PER_PAGE = 12;
 
   const filtered = useMemo(() =>
-    mockSessions.filter((s) => {
+    sessions.filter((s) => {
       if (search && !`${s.userName} ${s.partnerName ?? ""} ${s.topic}`.toLowerCase().includes(search.toLowerCase())) return false;
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
       if (levelFilter !== "all" && s.level !== levelFilter) return false;
       return true;
     }),
-    [search, statusFilter, levelFilter]
+    [sessions, search, statusFilter, levelFilter]
   );
 
   const pageCount = Math.ceil(filtered.length / PER_PAGE);

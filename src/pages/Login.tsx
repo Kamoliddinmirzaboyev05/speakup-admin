@@ -6,8 +6,8 @@ import { useAuthStore } from "../store/authStore";
 export default function Login() {
   const { login } = useAuthStore();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin@sayra.ai");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -16,11 +16,10 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    await new Promise((r) => setTimeout(r, 800));
     const ok = await login(email, password);
     setLoading(false);
     if (ok) navigate("/");
-    else setError("Invalid credentials. Try admin@sayra.ai / admin123");
+    else setError("Invalid email or password");
   };
 
   return (
@@ -59,7 +58,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                placeholder="admin@sayra.ai"
+                placeholder="admin@speakup.ai"
                 required
               />
             </div>

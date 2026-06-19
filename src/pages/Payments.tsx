@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search, Filter, Download, X, CheckCircle, Clock, XCircle,
   RotateCcw, Plus, Edit2, Zap, Star, CreditCard,
 } from "lucide-react";
-import { mockPayments, mockPlans } from "../data/mock";
+import { usePayments, usePlans } from "@/hooks/queries";
 import type { Payment, PaymentStatus, Plan } from "../types";
 
 const statusBadge: Record<PaymentStatus, { cls: string; icon: React.ElementType; label: string }> = {
@@ -110,8 +110,12 @@ export default function Payments() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [providerFilter, setProviderFilter] = useState("all");
-  const [payments, setPayments] = useState<Payment[]>(mockPayments);
-  const [plans, setPlans] = useState<Plan[]>(mockPlans);
+  const { data: paymentsData } = usePayments();
+  const { data: plansData } = usePlans();
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  useEffect(() => { if (paymentsData) setPayments(paymentsData); }, [paymentsData]);
+  useEffect(() => { if (plansData) setPlans(plansData); }, [plansData]);
   const [editPlan, setEditPlan] = useState<Plan | null | undefined>(undefined);
   const [page, setPage] = useState(1);
   const PER_PAGE = 12;

@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { loginAdmin } from "@/services/auth";
 
-interface Admin {
+export interface Admin {
   id: string;
   name: string;
   email: string;
@@ -29,32 +30,29 @@ export const useAuthStore = create<AuthState>()(
       sidebarCollapsed: false,
 
       login: async (email: string, password: string) => {
-        // Mock auth — replace with real API call
-        if (email === "admin@sayra.ai" && password === "admin123") {
-          set({
-            isAuthenticated: true,
-            token: "mock-jwt-token-xxx",
-            admin: {
-              id: "adm_001",
-              name: "Azizbek Karimov",
-              email: "admin@sayra.ai",
-              role: "superadmin",
-            },
-          });
+        try {
+          const { token, admin } = await loginAdmin(email, password);
+          set({ isAuthenticated: true, token, admin });
           return true;
+        } catch {
+          return false;
         }
-        return false;
       },
 
-      logout: () =>
-        set({ isAuthenticated: false, admin: null, token: null }),
+      logout: () => set({ isAuthenticated: false, admin: null, token: null }),
 
-      toggleSidebar: () =>
-        set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+      toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 
-      setSidebarCollapsed: (v: boolean) =>
-        set({ sidebarCollapsed: v }),
+      setSidebarCollapsed: (v: boolean) => set({ sidebarCollapsed: v }),
     }),
-    { name: "sayra-admin-auth" }
+    {
+      name: "speakup-admin-auth",
+      partialize: (s) => ({
+        isAuthenticated: s.isAuthenticated,
+        admin: s.admin,
+        token: s.token,
+        sidebarCollapsed: s.sidebarCollapsed,
+      }),
+    }
   )
 );

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Trophy, RefreshCw, Plus, Minus, X, CheckCircle, Globe } from "lucide-react";
-import { mockLeaderboard } from "../data/mock";
+import { useLeaderboard } from "@/hooks/queries";
 import type { LeaderboardEntry } from "../types";
 
 const levelBadge: Record<string, string> = {
@@ -74,7 +74,9 @@ function AdjustModal({ entry, onClose }: { entry: LeaderboardEntry; onClose: () 
 }
 
 export default function Leaderboard() {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>(mockLeaderboard);
+  const { data } = useLeaderboard();
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  useEffect(() => { if (data) setEntries(data); }, [data]);
   const [adjustEntry, setAdjustEntry] = useState<LeaderboardEntry | null>(null);
   const [resetting, setResetting] = useState(false);
 

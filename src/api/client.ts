@@ -9,7 +9,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const raw = localStorage.getItem("sayra-admin-auth");
+  const raw = localStorage.getItem("speakup-admin-auth");
   if (raw) {
     try {
       const state = JSON.parse(raw);
@@ -23,8 +23,10 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem("sayra-admin-auth");
+    const url: string = err.config?.url ?? "";
+    const isLogin = url.includes("/admin/auth/login");
+    if (err.response?.status === 401 && !isLogin) {
+      localStorage.removeItem("speakup-admin-auth");
       window.location.href = "/login";
     }
     return Promise.reject(err);

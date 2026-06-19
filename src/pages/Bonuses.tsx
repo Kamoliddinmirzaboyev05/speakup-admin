@@ -1,18 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Gift, Plus, Trash2, Copy, CheckCircle, Users, Zap, X,
   RefreshCw, Percent,
 } from "lucide-react";
-import { mockPromoCodes, mockUsers } from "../data/mock";
+import { usePromoCodes, useUsers } from "@/hooks/queries";
 import type { PromoCode } from "../types";
 
 function GiveBonusModal({ onClose }: { onClose: () => void }) {
+  const { data: users = [] } = useUsers();
   const [target, setTarget] = useState<"specific" | "all" | "premium">("specific");
   const [userId, setUserId] = useState("");
   const [minutes, setMinutes] = useState(30);
   const [reason, setReason] = useState("");
   const [done, setDone] = useState(false);
-  const userSearch = mockUsers.filter((u) =>
+  const userSearch = users.filter((u) =>
     userId.length > 1 && `${u.firstName} ${u.lastName} ${u.username}`.toLowerCase().includes(userId.toLowerCase())
   ).slice(0, 5);
 
@@ -161,7 +162,9 @@ function CreatePromoModal({ onClose, onSave }: { onClose: () => void; onSave: (p
 export default function Bonuses() {
   const [showBonusModal, setShowBonusModal] = useState(false);
   const [showPromoModal, setShowPromoModal] = useState(false);
-  const [codes, setCodes] = useState<PromoCode[]>(mockPromoCodes);
+  const { data: codesData } = usePromoCodes();
+  const [codes, setCodes] = useState<PromoCode[]>([]);
+  useEffect(() => { if (codesData) setCodes(codesData); }, [codesData]);
   const [copied, setCopied] = useState<string | null>(null);
   const [referralBonus, setReferralBonus] = useState(15);
   const [referredBonus, setReferredBonus] = useState(10);

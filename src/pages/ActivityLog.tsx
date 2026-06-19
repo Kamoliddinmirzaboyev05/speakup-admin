@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Activity, Ban, Gift, Percent, RefreshCw, BookOpen, CreditCard, Search, X } from "lucide-react";
-import { mockActivityLog } from "../data/mock";
+import { useActivityLog } from "@/hooks/queries";
 import type { ActivityLog } from "../types";
 
 const ACTION_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
@@ -14,8 +14,7 @@ const ACTION_META: Record<string, { label: string; icon: React.ElementType; colo
 };
 
 // Extend with more mock entries for a richer log
-const fullLog: ActivityLog[] = [
-  ...mockActivityLog,
+const EXTRA_LOG: ActivityLog[] = [
   { id: "log_008", adminName: "Azizbek Karimov", action: "give_bonus", target: "All Users", targetId: "all", details: "Gave 15 min to all users — Eid celebration", createdAt: new Date(Date.now() - 86400000 * 12).toISOString() },
   { id: "log_009", adminName: "Azizbek Karimov", action: "update_plan", target: "Plan", targetId: "plan_py", details: "Updated Premium Yearly price to $39.99", createdAt: new Date(Date.now() - 86400000 * 15).toISOString() },
   { id: "log_010", adminName: "Azizbek Karimov", action: "add_question", target: "Question", targetId: "qst_019", details: "Added 3 new Intermediate questions on Career Goals", createdAt: new Date(Date.now() - 86400000 * 18).toISOString() },
@@ -26,6 +25,8 @@ const fullLog: ActivityLog[] = [
 export default function ActivityLog() {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
+  const { data: base = [] } = useActivityLog();
+  const fullLog = useMemo(() => [...base, ...EXTRA_LOG], [base]);
 
   const filtered = fullLog.filter((l) => {
     if (search && !`${l.details} ${l.adminName} ${l.action}`.toLowerCase().includes(search.toLowerCase())) return false;

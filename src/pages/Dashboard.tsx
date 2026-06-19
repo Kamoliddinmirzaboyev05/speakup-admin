@@ -3,7 +3,7 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { mockStats, mockUserGrowth, mockSessionsChart, mockLeaderboard, mockActivityLog } from "../data/mock";
+import { useDashboard } from "@/hooks/queries";
 
 function StatCard({
   icon: Icon, label, value, sub, color, trend,
@@ -48,7 +48,9 @@ const levelBadge: Record<string, string> = {
 };
 
 export default function Dashboard() {
-  const s = mockStats;
+  const { data } = useDashboard();
+  if (!data) return <div className="p-6 text-sm text-muted-foreground">Loading…</div>;
+  const { stats: s, userGrowth, sessionsChart, leaderboard, activity } = data;
 
   return (
     <div className="space-y-6">
@@ -90,7 +92,7 @@ export default function Dashboard() {
             <div className="text-xs text-muted-foreground">New registrations — last 7 days</div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={mockUserGrowth} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+            <AreaChart data={userGrowth} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
               <defs>
                 <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
@@ -113,7 +115,7 @@ export default function Dashboard() {
             <div className="text-xs text-muted-foreground">Sessions & unique users — last 7 days</div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={mockSessionsChart} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+            <BarChart data={sessionsChart} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
@@ -137,7 +139,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="space-y-2">
-            {mockLeaderboard.slice(0, 5).map((u) => (
+            {leaderboard.slice(0, 5).map((u) => (
               <div key={u.userId} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors">
                 <span className={`font-mono text-xs font-bold w-5 text-center ${u.rank <= 3 ? "text-amber-400" : "text-muted-foreground"}`}>
                   {u.rank <= 3 ? ["🥇", "🥈", "🥉"][u.rank - 1] : u.rank}
@@ -168,7 +170,7 @@ export default function Dashboard() {
             <div className="text-xs text-muted-foreground">Latest admin actions</div>
           </div>
           <div className="space-y-3">
-            {mockActivityLog.slice(0, 6).map((log) => {
+            {activity.slice(0, 6).map((log) => {
               const actionColor: Record<string, string> = {
                 ban_user: "text-red-400 bg-red-400/10",
                 give_bonus: "text-emerald-400 bg-emerald-400/10",

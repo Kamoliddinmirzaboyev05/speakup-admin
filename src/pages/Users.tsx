@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search, Filter, Download, Ban, Gift, RotateCcw, Trash2,
   ChevronUp, ChevronDown, X, CheckCircle, Clock, AlertCircle,
   User as UserIcon, Mic, Calendar,
 } from "lucide-react";
-import { mockUsers } from "../data/mock";
+import { useUsers } from "@/hooks/queries";
 import type { User, UserLevel, UserStatus } from "../types";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -188,7 +188,9 @@ export default function Users() {
   const [page, setPage] = useState(1);
   const PER_PAGE = 10;
 
-  const [userList, setUserList] = useState<User[]>(mockUsers);
+  const { data } = useUsers();
+  const [userList, setUserList] = useState<User[]>([]);
+  useEffect(() => { if (data) setUserList(data); }, [data]);
 
   const sort = (key: SortKey) => {
     if (key === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));

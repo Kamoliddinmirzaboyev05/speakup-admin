@@ -1,11 +1,40 @@
+# SpeakUp — Admin Panel
 
-  # Admin Panel for Sayra AI
+React + Vite + Tailwind admin dashboard for SpeakUp (users, sessions, leaderboard,
+payments, bonuses, content, activity log, settings).
 
-  This is a code bundle for Admin Panel for Sayra AI. The original project is available at https://www.figma.com/design/hoT18Ws5sSJRzEq5Cl6DFQ/Admin-Panel-for-Sayra-AI.
+## Architecture
+```
+src/
+├── App.tsx            # routes (react-router) + react-query provider + auth guards
+├── main.tsx           # entry
+├── api/client.ts      # axios instance (Bearer token from auth store, 401 → /login)
+├── services/          # ── the ONLY place that touches the data source ──
+│   ├── admin.ts        #   data fns (users, sessions, …) — mock today, API later
+│   └── auth.ts         #   admin login
+├── hooks/queries.ts   # react-query hooks over services (useUsers, useSessions, …)
+├── store/authStore.ts # zustand auth + sidebar state (persisted)
+├── pages/             # one component per route — consume hooks, never mock
+├── components/Layout  # sidebar + topbar shell
+├── data/mock.ts       # mock dataset (imported ONLY by services/admin.ts)
+├── types/             # shared domain types
+└── styles/            # tailwind v4 + theme
+```
 
-  ## Running the code
+**Swapping mock → real backend:** edit only `src/services/*`. Replace each function
+body with an `api.get(...)` call (see commented examples). Pages and hooks don't change.
 
-  Run `npm i` to install the dependencies.
+## Run
+```bash
+cp .env.example .env        # set VITE_API_URL when a backend exists
+pnpm install
+pnpm dev                    # http://localhost:5173
+pnpm build                  # -> dist/
+pnpm typecheck
+```
 
-  Run `npm run dev` to start the development server.
-  
+Demo login (mock auth): **admin@speakup.ai / admin123**.
+
+## Deploy (Vercel)
+Set project **Root Directory = `frontend-admin`** (Vite auto-detected), env var
+`VITE_API_URL` = admin API origin. SPA — add a catch-all rewrite to `/index.html`.

@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Edit2, Trash2, Eye, EyeOff, Search, X, CheckCircle, BookOpen } from "lucide-react";
-import { mockQuestions } from "../data/mock";
+import { useQuestions } from "@/hooks/queries";
 import type { Question, UserLevel } from "../types";
 
 const LEVELS: UserLevel[] = ["beginner", "intermediate", "advanced"];
@@ -112,7 +112,9 @@ function QuestionModal({
 }
 
 export default function Content() {
-  const [questions, setQuestions] = useState<Question[]>(mockQuestions);
+  const { data } = useQuestions();
+  const [questions, setQuestions] = useState<Question[]>([]);
+  useEffect(() => { if (data) setQuestions(data); }, [data]);
   const [activeLevel, setActiveLevel] = useState<UserLevel>("beginner");
   const [search, setSearch] = useState("");
   const [editQuestion, setEditQuestion] = useState<Partial<Question> | null | undefined>(undefined);
