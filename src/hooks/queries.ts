@@ -8,12 +8,15 @@ import {
   type AdminCreateInput,
   type AdminUpdateInput,
 } from "@/services/admins";
+import { contentService } from "@/services/content";
 
 export const queryKeys = {
   stats: ["stats"] as const,
   users: ["users"] as const,
   sessions: ["sessions"] as const,
   admins: ["admins"] as const,
+  groups: ["groups"] as const,
+  questions: ["questions"] as const,
 };
 
 export const useStats = () =>
@@ -59,4 +62,39 @@ export const useDeleteAdmin = () => {
     mutationFn: (id: number) => adminsService.remove(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.admins }),
   });
+};
+
+// ── IELTS speaking content ───────────────────────────────────────────────────
+
+export const useGroups = (part: number) =>
+  useQuery({ queryKey: [...queryKeys.groups, part], queryFn: () => contentService.groups(part) });
+
+export const useGroupMutations = () => {
+  const qc = useQueryClient();
+  const inv = () => qc.invalidateQueries({ queryKey: queryKeys.groups });
+  return {
+    create: useMutation({ mutationFn: (d: { part: number; title: string; tag?: string | null }) => contentService.createGroup(d), onSuccess: inv }),
+    update: useMutation({ mutationFn: ({ id, d }: { id: number; d: any }) => contentService.updateGroup(id, d), onSuccess: inv }),
+    remove: useMutation({ mutationFn: (id: number) => contentService.deleteGroup(id), onSuccess: inv }),
+  };
+};
+
+export const useQuestions = (groupId: number | null) =>
+  useQuery({
+    queryKey: [...queryKeys.questions, groupId],
+    queryFn: () => contentService.questions(groupId as number),
+    enabled: groupId != null,
+  });
+
+export const useQuestionMutations = (groupId: number | null) => {
+  const qc = useQueryClient();
+  const inv = () => {
+    qc.invalidateQueries({ queryKey: [...queryKeys.questions, groupId] });
+    qc.invalidateQueries({ queryKey: queryKeys.groups });
+  };
+  return {
+    create: useMutation({ mutationFn: (text: string) => contentService.createQuestion(groupId as number, text), onSuccess: inv }),
+    update: useMutation({ mutationFn: ({ id, text }: { id: number; text: string }) => contentService.updateQuestion(id, text), onSuccess: inv }),
+    remove: useMutation({ mutationFn: (id: number) => contentService.deleteQuestion(id), onSuccess: inv }),
+  };
 };

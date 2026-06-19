@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router";
 import {
   LayoutDashboard, Users, Trophy, Mic, LogOut, ChevronLeft, ChevronRight,
-  Menu, X, Bot, ShieldCheck,
+  Menu, X, Bot, ShieldCheck, BookOpen,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/users", icon: Users, label: "Foydalanuvchilar" },
   { to: "/leaderboard", icon: Trophy, label: "Reyting" },
   { to: "/sessions", icon: Mic, label: "Sessiyalar" },
+  { to: "/questions", icon: BookOpen, label: "Savollar" },
   { to: "/admins", icon: ShieldCheck, label: "Adminlar" },
 ];
 
@@ -19,6 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/users": "Foydalanuvchilar",
   "/leaderboard": "Reyting",
   "/sessions": "Sessiyalar",
+  "/questions": "Savollar (IELTS)",
   "/admins": "Adminlar",
 };
 

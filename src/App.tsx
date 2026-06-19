@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Users from "@/pages/Users";
 import Leaderboard from "@/pages/Leaderboard";
 import Sessions from "@/pages/Sessions";
+import Questions from "@/pages/Questions";
 import Admins from "@/pages/Admins";
 
 const queryClient = new QueryClient({
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="users" element={<Users />} />
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="sessions" element={<Sessions />} />
+              <Route path="questions" element={<Questions />} />
               <Route path="admins" element={<Admins />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
