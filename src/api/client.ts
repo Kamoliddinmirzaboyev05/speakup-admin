@@ -3,7 +3,8 @@ import axios from "axios";
 // API base URL comes from VITE_API_URL (.env / Vercel env). Falls back to the
 // local backend for dev when unset. No hardcoded production URL here.
 const _env = (import.meta as unknown as { env: Record<string, string> }).env;
-const BASE_URL = _env?.VITE_API_URL || "http://localhost:8000";
+// Strip trailing slash(es) so axios baseURL + "/api/..." never doubles up.
+const BASE_URL = (_env?.VITE_API_URL || "http://localhost:8000").replace(/\/+$/, "");
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
