@@ -9,12 +9,7 @@ import {
   type AdminUpdateInput,
 } from "@/services/admins";
 import { contentService } from "@/services/content";
-import { billingService } from "@/services/billing";
-import type {
-  PlanInput,
-  PaymentStatus,
-  AdminSettings,
-} from "@/types";
+import { feedbackService } from "@/services/feedback";
 
 export const queryKeys = {
   stats: ["stats"] as const,
@@ -23,10 +18,6 @@ export const queryKeys = {
   admins: ["admins"] as const,
   groups: ["groups"] as const,
   questions: ["questions"] as const,
-  plans: ["plans"] as const,
-  payments: ["payments"] as const,
-  billingStats: ["billing-stats"] as const,
-  settings: ["settings"] as const,
   feedback: ["feedback"] as const,
 };
 
@@ -110,67 +101,16 @@ export const useQuestionMutations = (groupId: number | null) => {
   };
 };
 
-// ── Billing: plans ─────────────────────────────────────────────────────────
-
-export const usePlans = () =>
-  useQuery({ queryKey: queryKeys.plans, queryFn: billingService.plans });
-
-export const usePlanMutations = () => {
-  const qc = useQueryClient();
-  const inv = () => qc.invalidateQueries({ queryKey: queryKeys.plans });
-  return {
-    create: useMutation({ mutationFn: (d: PlanInput) => billingService.createPlan(d), onSuccess: inv }),
-    update: useMutation({ mutationFn: ({ id, d }: { id: number; d: Partial<PlanInput> }) => billingService.updatePlan(id, d), onSuccess: inv }),
-    remove: useMutation({ mutationFn: (id: number) => billingService.deletePlan(id), onSuccess: inv }),
-  };
-};
-
-// ── Billing: payments + stats ───────────────────────────────────────────────
-
-export const usePayments = (status?: PaymentStatus) =>
-  useQuery({
-    queryKey: [...queryKeys.payments, status ?? "all"],
-    queryFn: () => billingService.payments(status),
-  });
-
-export const useBillingStats = () =>
-  useQuery({ queryKey: queryKeys.billingStats, queryFn: billingService.billingStats });
-
-export const usePaymentMutations = () => {
-  const qc = useQueryClient();
-  const inv = () => {
-    qc.invalidateQueries({ queryKey: queryKeys.payments });
-    qc.invalidateQueries({ queryKey: queryKeys.billingStats });
-  };
-  return {
-    confirm: useMutation({ mutationFn: (id: number) => billingService.confirmPayment(id), onSuccess: inv }),
-    reject: useMutation({ mutationFn: (id: number) => billingService.rejectPayment(id), onSuccess: inv }),
-  };
-};
-
-// ── Billing: settings ─────────────────────────────────────────────────────────
-
-export const useSettings = () =>
-  useQuery({ queryKey: queryKeys.settings, queryFn: billingService.settings });
-
-export const useUpdateSettings = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (d: Partial<AdminSettings>) => billingService.updateSettings(d),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.settings }),
-  });
-};
-
 // ── Feedback moderation ─────────────────────────────────────────────────────
 
 export const useFeedback = () =>
-  useQuery({ queryKey: queryKeys.feedback, queryFn: billingService.feedback });
+  useQuery({ queryKey: queryKeys.feedback, queryFn: feedbackService.feedback });
 
 export const useFeedbackMutations = () => {
   const qc = useQueryClient();
   const inv = () => qc.invalidateQueries({ queryKey: queryKeys.feedback });
   return {
-    approve: useMutation({ mutationFn: (id: number) => billingService.approveFeedback(id), onSuccess: inv }),
-    reject: useMutation({ mutationFn: (id: number) => billingService.rejectFeedback(id), onSuccess: inv }),
+    approve: useMutation({ mutationFn: (id: number) => feedbackService.approveFeedback(id), onSuccess: inv }),
+    reject: useMutation({ mutationFn: (id: number) => feedbackService.rejectFeedback(id), onSuccess: inv }),
   };
 };

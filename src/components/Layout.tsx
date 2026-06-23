@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router";
 import {
   LayoutDashboard, Users, Trophy, Mic, LogOut, ChevronLeft, ChevronRight,
-  Menu, X, Bot, ShieldCheck, BookOpen, CreditCard, Crown, Settings,
+  Menu, X, Bot, ShieldCheck, BookOpen, MessageSquare,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 
@@ -12,9 +12,7 @@ const NAV = [
   { to: "/leaderboard", icon: Trophy, label: "Reyting" },
   { to: "/sessions", icon: Mic, label: "Sessiyalar" },
   { to: "/questions", icon: BookOpen, label: "Savollar" },
-  { to: "/payments", icon: CreditCard, label: "To'lovlar" },
-  { to: "/plans", icon: Crown, label: "Tariflar" },
-  { to: "/settings", icon: Settings, label: "Sozlamalar" },
+  { to: "/feedback", icon: MessageSquare, label: "Sharhlar" },
   { to: "/admins", icon: ShieldCheck, label: "Adminlar" },
 ];
 
@@ -24,9 +22,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/leaderboard": "Reyting",
   "/sessions": "Sessiyalar",
   "/questions": "Savollar (IELTS)",
-  "/payments": "To'lovlar va sharhlar",
-  "/plans": "Tariflar",
-  "/settings": "Sozlamalar",
+  "/feedback": "Sharhlar",
   "/admins": "Adminlar",
 };
 
