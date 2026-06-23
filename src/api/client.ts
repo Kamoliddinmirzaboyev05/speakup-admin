@@ -1,10 +1,17 @@
 import axios from "axios";
 
-// API base URL comes from VITE_API_URL (.env / Vercel env). Falls back to the
-// local backend for dev when unset. No hardcoded production URL here.
-const _env = (import.meta as unknown as { env: Record<string, string> }).env;
+// Production backend lives on the DigitalOcean droplet behind Caddy and serves
+// the admin API under /api/admin/*. The domain is stable, so it's pinned for
+// prod builds: a stale Vercel env var (an old `*.trycloudflare.com` dev tunnel)
+// kept overriding VITE_API_URL and pointing the panel at a dead host
+// (ERR_NAME_NOT_RESOLVED on every request). In prod we ignore VITE_API_URL and
+// always hit the live API; dev still honors VITE_API_URL for local backends.
+const PROD_API = "https://speakupapi.webportfolio.uz";
+const _meta = import.meta as unknown as { env: Record<string, string> & { PROD?: boolean } };
+const _env = _meta.env;
+const _base = _env?.PROD ? PROD_API : (_env?.VITE_API_URL || "http://localhost:8000");
 // Strip trailing slash(es) so axios baseURL + "/api/..." never doubles up.
-const BASE_URL = (_env?.VITE_API_URL || "http://localhost:8000").replace(/\/+$/, "");
+const BASE_URL = _base.replace(/\/+$/, "");
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
