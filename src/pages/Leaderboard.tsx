@@ -21,14 +21,14 @@ export default function Leaderboard() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Trophy size={16} className="text-amber-400" />
-        <h3 className="text-sm font-semibold text-foreground">Reyting — eng ko'p daqiqa to'plagan foydalanuvchilar</h3>
+        <h3 className="text-sm font-semibold text-foreground">Leaderboard — users with the most minutes</h3>
       </div>
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {["O'rin", "Foydalanuvchi", "Jami daqiqa", "Streak", "Sessiya"].map((h) => (
+                {["Rank", "User", "Total minutes", "Streak", "Sessions"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-muted-foreground font-medium">{h}</th>
                 ))}
               </tr>
@@ -47,7 +47,7 @@ export default function Leaderboard() {
                   </tr>
                 );
               })}
-              {!isLoading && ranked.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Ma'lumot yo'q</td></tr>}
+              {!isLoading && ranked.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No data</td></tr>}
             </tbody>
           </table>
         </div>

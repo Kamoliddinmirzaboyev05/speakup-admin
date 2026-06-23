@@ -19,13 +19,13 @@ export default function Sessions() {
 
   return (
     <div className="space-y-4">
-      <div className="text-xs text-muted-foreground">{total} ta sessiya</div>
+      <div className="text-xs text-muted-foreground">{total} sessions</div>
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {["#", "Foydalanuvchi", "Hamroh", "Tur", "Mavzu", "Davomiyligi", "Boshlandi", "Tugadi"].map((h) => (
+                {["#", "User", "Partner", "Type", "Topic", "Duration", "Started", "Ended"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-muted-foreground font-medium">{h}</th>
                 ))}
               </tr>
@@ -44,21 +44,21 @@ export default function Sessions() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{ss.topic ?? "—"}</td>
                   <td className="px-4 py-3 font-mono text-foreground">{fmtDur(ss.duration_sec)}</td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono">{new Date(ss.start_time).toLocaleString("uz", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono">{ss.end_time ? new Date(ss.end_time).toLocaleString("uz", { hour: "2-digit", minute: "2-digit" }) : "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground font-mono">{new Date(ss.start_time).toLocaleString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
+                  <td className="px-4 py-3 text-muted-foreground font-mono">{ss.end_time ? new Date(ss.end_time).toLocaleString("en", { hour: "2-digit", minute: "2-digit" }) : "—"}</td>
                 </tr>
               ))}
-              {!isLoading && items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Sessiyalar yo'q</td></tr>}
+              {!isLoading && items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No sessions</td></tr>}
             </tbody>
           </table>
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-          <span className="text-xs text-muted-foreground">{page + 1} / {pageCount} sahifa</span>
+          <span className="text-xs text-muted-foreground">{page + 1} / {pageCount} pages</span>
           <div className="flex gap-1">
             <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
-              className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors">Oldingi</button>
+              className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors">Previous</button>
             <button onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} disabled={page >= pageCount - 1}
-              className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors">Keyingi</button>
+              className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors">Next</button>
           </div>
         </div>
       </div>

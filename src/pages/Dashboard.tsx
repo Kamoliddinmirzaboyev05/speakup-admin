@@ -46,27 +46,27 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="Jami foydalanuvchilar" value={s.total_users} color="bg-blue-500/10 text-blue-400" />
-        <StatCard icon={CheckCircle} label="Onboarding tugatgan" value={s.onboarded_users} color="bg-emerald-500/10 text-emerald-400" />
-        <StatCard icon={Activity} label="Bugun faol" value={s.active_today} color="bg-purple-500/10 text-purple-400" />
-        <StatCard icon={UserPlus} label="Bugun yangi" value={s.new_users_today} color="bg-amber-500/10 text-amber-400" />
-        <StatCard icon={Mic} label="Bugungi sessiyalar" value={s.sessions_today} color="bg-pink-500/10 text-pink-400" />
-        <StatCard icon={Mic} label="Jami sessiyalar" value={s.total_sessions} color="bg-cyan-500/10 text-cyan-400" />
-        <StatCard icon={Clock} label="Haftalik daqiqa" value={s.total_minutes_week} color="bg-indigo-500/10 text-indigo-400" />
-        <StatCard icon={Zap} label="O'rtacha sessiya (daq)" value={s.avg_session_min} color="bg-orange-500/10 text-orange-400" />
+        <StatCard icon={Users} label="Total users" value={s.total_users} color="bg-blue-500/10 text-blue-400" />
+        <StatCard icon={CheckCircle} label="Completed onboarding" value={s.onboarded_users} color="bg-emerald-500/10 text-emerald-400" />
+        <StatCard icon={Activity} label="Active today" value={s.active_today} color="bg-purple-500/10 text-purple-400" />
+        <StatCard icon={UserPlus} label="New today" value={s.new_users_today} color="bg-amber-500/10 text-amber-400" />
+        <StatCard icon={Mic} label="Sessions today" value={s.sessions_today} color="bg-pink-500/10 text-pink-400" />
+        <StatCard icon={Mic} label="Total sessions" value={s.total_sessions} color="bg-cyan-500/10 text-cyan-400" />
+        <StatCard icon={Clock} label="Weekly minutes" value={s.total_minutes_week} color="bg-indigo-500/10 text-indigo-400" />
+        <StatCard icon={Zap} label="Avg session (min)" value={s.avg_session_min} color="bg-orange-500/10 text-orange-400" />
       </div>
 
       {/* Recent sessions */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="px-4 py-3 border-b border-border flex items-center gap-2">
           <Calendar size={14} className="text-muted-foreground" />
-          <h3 className="text-sm font-semibold text-foreground">So'nggi sessiyalar</h3>
+          <h3 className="text-sm font-semibold text-foreground">Recent sessions</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {["Foydalanuvchi", "Hamroh", "Mavzu", "Davomiyligi", "Vaqt"].map((h) => (
+                {["User", "Partner", "Topic", "Duration", "Time"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-muted-foreground font-medium">{h}</th>
                 ))}
               </tr>
@@ -80,12 +80,12 @@ export default function Dashboard() {
                   <td className="px-4 py-3 text-muted-foreground">{ss.topic ?? "—"}</td>
                   <td className="px-4 py-3 font-mono text-foreground">{fmtDur(ss.duration_sec)}</td>
                   <td className="px-4 py-3 text-muted-foreground font-mono">
-                    {new Date(ss.start_time).toLocaleString("uz", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(ss.start_time).toLocaleString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </td>
                 </tr>
               ))}
               {!sessionsLoading && (sessions?.items ?? []).length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Sessiyalar yo'q</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No sessions</td></tr>
               )}
             </tbody>
           </table>

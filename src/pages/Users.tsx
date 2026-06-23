@@ -5,9 +5,9 @@ import { SkeletonTableRows } from "@/components/Skeleton";
 import type { AdminUser, UserLevel } from "@/types";
 
 const levelLabel: Record<UserLevel, string> = {
-  beginner: "Boshlang'ich",
-  intermediate: "O'rta",
-  advanced: "Yuqori",
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
 };
 const levelBadge: Record<UserLevel, string> = {
   beginner: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
@@ -28,23 +28,23 @@ function UserModal({ user, onClose }: { user: AdminUser; onClose: () => void }) 
   const rows: [string, string | number][] = [
     ["Telegram ID", user.telegram_id],
     ["Username", user.username ? `@${user.username}` : "—"],
-    ["Telefon", user.phone ?? "—"],
-    ["Daraja", user.level ? levelLabel[user.level] : "—"],
-    ["Jins", user.gender ?? "—"],
-    ["Joylashuv", user.location ?? "—"],
-    ["Maqsad", user.goal ?? "—"],
-    ["Qiyinchilik", user.challenge ?? "—"],
-    ["Jami daqiqa", user.total_minutes],
-    ["Streak", `${user.streak} kun`],
-    ["Sessiyalar", user.sessions_count],
-    ["Onboarding", user.onboarded ? "Tugatgan" : "Tugatmagan"],
-    ["Ro'yxatdan o'tgan", new Date(user.created_at).toLocaleDateString("uz", { year: "numeric", month: "short", day: "numeric" })],
+    ["Phone", user.phone ?? "—"],
+    ["Level", user.level ? levelLabel[user.level] : "—"],
+    ["Gender", user.gender ?? "—"],
+    ["Location", user.location ?? "—"],
+    ["Goal", user.goal ?? "—"],
+    ["Challenge", user.challenge ?? "—"],
+    ["Total minutes", user.total_minutes],
+    ["Streak", `${user.streak} days`],
+    ["Sessions", user.sessions_count],
+    ["Onboarding", user.onboarded ? "Onboarded" : "Not onboarded"],
+    ["Registered", new Date(user.created_at).toLocaleDateString("en", { year: "numeric", month: "short", day: "numeric" })],
   ];
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={onClose}>
       <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h3 className="text-sm font-semibold text-foreground">Foydalanuvchi profili</h3>
+          <h3 className="text-sm font-semibold text-foreground">User profile</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
         </div>
         <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
@@ -94,11 +94,11 @@ export default function Users() {
         <Search size={14} className="text-muted-foreground" />
         <input
           value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-          placeholder="Ism, username yoki Telegram ID bo'yicha qidirish…"
+          placeholder="Search by name, username or Telegram ID…"
           className="bg-transparent text-xs outline-none text-foreground placeholder:text-muted-foreground flex-1"
         />
         {search && <button onClick={() => { setSearch(""); setPage(0); }}><X size={12} className="text-muted-foreground" /></button>}
-        <span className="text-xs text-muted-foreground">{total} ta</span>
+        <span className="text-xs text-muted-foreground">{total}</span>
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -106,7 +106,7 @@ export default function Users() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {["Foydalanuvchi", "Daraja", "Telefon", "Joylashuv", "Daqiqa", "Streak", "Sessiya", "Ro'yxat"].map((h) => (
+                {["User", "Level", "Phone", "Location", "Minutes", "Streak", "Sessions", "Registered"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-muted-foreground font-medium">{h}</th>
                 ))}
               </tr>
@@ -134,21 +134,21 @@ export default function Users() {
                     <td className="px-4 py-3 font-mono text-foreground">{u.total_minutes}</td>
                     <td className="px-4 py-3"><span className="text-amber-400">🔥 {u.streak}</span></td>
                     <td className="px-4 py-3 font-mono text-foreground">{u.sessions_count}</td>
-                    <td className="px-4 py-3 text-muted-foreground font-mono">{new Date(u.created_at).toLocaleDateString("uz", { month: "short", day: "numeric", year: "2-digit" })}</td>
+                    <td className="px-4 py-3 text-muted-foreground font-mono">{new Date(u.created_at).toLocaleDateString("en", { month: "short", day: "numeric", year: "2-digit" })}</td>
                   </tr>
                 );
               })}
-              {!isLoading && items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Foydalanuvchi topilmadi</td></tr>}
+              {!isLoading && items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No users found</td></tr>}
             </tbody>
           </table>
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-          <span className="text-xs text-muted-foreground">{page + 1} / {pageCount} sahifa · {total} natija</span>
+          <span className="text-xs text-muted-foreground">{page + 1} / {pageCount} pages · {total} results</span>
           <div className="flex gap-1">
             <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
-              className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors">Oldingi</button>
+              className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors">Previous</button>
             <button onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} disabled={page >= pageCount - 1}
-              className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors">Keyingi</button>
+              className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors">Next</button>
           </div>
         </div>
       </div>

@@ -19,7 +19,7 @@ const roleBadge: Record<AdminRole, string> = {
   admin: "text-blue-400 bg-blue-400/10 border-blue-400/20",
 };
 const roleLabel: Record<AdminRole, string> = {
-  superadmin: "Bosh admin",
+  superadmin: "Super admin",
   admin: "Admin",
 };
 
@@ -59,7 +59,7 @@ function CreateModal({ onClose }: { onClose: () => void }) {
       setDone(true);
       setTimeout(onClose, 900);
     } catch (err) {
-      setError(errMsg(err, "Admin qo'shilmadi"));
+      setError(errMsg(err, "Could not add admin"));
     }
   };
 
@@ -67,36 +67,36 @@ function CreateModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">Admin qo'shish</h3>
+          <h3 className="text-sm font-semibold text-foreground">Add admin</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
         </div>
         {done ? (
           <div className="flex flex-col items-center gap-2 py-4">
             <CheckCircle size={32} className="text-emerald-400" />
-            <p className="text-sm text-foreground">Admin qo'shildi!</p>
+            <p className="text-sm text-foreground">Admin added!</p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
             <Field label="Email">
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="admin@example.com" />
             </Field>
-            <Field label="Ism">
-              <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="To'liq ism" />
+            <Field label="Name">
+              <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="Full name" />
             </Field>
-            <Field label="Parol (kamida 6 belgi)">
-              <input type="text" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="Parol" />
+            <Field label="Password (at least 6 characters)">
+              <input type="text" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="Password" />
             </Field>
-            <Field label="Rol">
+            <Field label="Role">
               <select value={role} onChange={(e) => setRole(e.target.value as AdminRole)} className={inputCls}>
                 <option value="admin">Admin</option>
-                <option value="superadmin">Bosh admin</option>
+                <option value="superadmin">Super admin</option>
               </select>
             </Field>
             {error && <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</p>}
             <div className="flex gap-2 mt-5">
-              <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">Bekor</button>
+              <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
               <button type="submit" disabled={create.isPending} className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
-                {create.isPending && <Loader2 size={13} className="animate-spin" />} Qo'shish
+                {create.isPending && <Loader2 size={13} className="animate-spin" />} Add
               </button>
             </div>
           </form>
@@ -120,7 +120,7 @@ function PasswordModal({ admin, onClose }: { admin: AdminAccount; onClose: () =>
       setDone(true);
       setTimeout(onClose, 900);
     } catch (err) {
-      setError(errMsg(err, "Parol o'zgartirilmadi"));
+      setError(errMsg(err, "Could not change password"));
     }
   };
 
@@ -128,25 +128,25 @@ function PasswordModal({ admin, onClose }: { admin: AdminAccount; onClose: () =>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">Parolni o'zgartirish</h3>
+          <h3 className="text-sm font-semibold text-foreground">Change password</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
         </div>
         {done ? (
           <div className="flex flex-col items-center gap-2 py-4">
             <CheckCircle size={32} className="text-emerald-400" />
-            <p className="text-sm text-foreground">Parol yangilandi!</p>
+            <p className="text-sm text-foreground">Password updated!</p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
-            <p className="text-xs text-muted-foreground"><span className="text-foreground font-medium">{admin.email}</span> uchun</p>
-            <Field label="Yangi parol (kamida 6 belgi)">
-              <input type="text" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="Yangi parol" />
+            <p className="text-xs text-muted-foreground">for <span className="text-foreground font-medium">{admin.email}</span></p>
+            <Field label="New password (at least 6 characters)">
+              <input type="text" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="New password" />
             </Field>
             {error && <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</p>}
             <div className="flex gap-2 mt-5">
-              <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">Bekor</button>
+              <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
               <button type="submit" disabled={update.isPending} className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
-                {update.isPending && <Loader2 size={13} className="animate-spin" />} Saqlash
+                {update.isPending && <Loader2 size={13} className="animate-spin" />} Save
               </button>
             </div>
           </form>
@@ -168,20 +168,20 @@ export default function Admins() {
 
   const toggleActive = (a: AdminAccount) => update.mutate({ id: a.id, input: { is_active: !a.is_active } });
   const toggleRole = (a: AdminAccount) => update.mutate({ id: a.id, input: { role: a.role === "superadmin" ? "admin" : "superadmin" } });
-  const remove = (a: AdminAccount) => { if (confirm(`${a.email} adminni o'chirasizmi?`)) del.mutate(a.id); };
+  const remove = (a: AdminAccount) => { if (confirm(`Delete admin ${a.email}?`)) del.mutate(a.id); };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{data?.length ?? 0} ta admin</p>
+        <p className="text-xs text-muted-foreground">{data?.length ?? 0} admins</p>
         <button onClick={() => setCreateOpen(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors">
-          <Plus size={14} /> Admin qo'shish
+          <Plus size={14} /> Add admin
         </button>
       </div>
 
       {forbidden && (
         <div className="bg-amber-400/10 border border-amber-400/20 rounded-xl p-4 text-xs text-amber-400">
-          Adminlarni faqat <b>bosh admin</b> boshqara oladi. Sizning rolingiz: <b>{me?.role}</b>.
+          Only a <b>super admin</b> can manage admins. Your role: <b>{me?.role}</b>.
         </div>
       )}
 
@@ -190,7 +190,7 @@ export default function Admins() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {["Admin", "Email", "Rol", "Holat", "Amallar"].map((h) => (
+                {["Admin", "Email", "Role", "Status", "Actions"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-muted-foreground font-medium">{h}</th>
                 ))}
               </tr>
@@ -204,7 +204,7 @@ export default function Admins() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <Avatar name={a.name} />
-                      <span className="font-medium text-foreground">{a.name}{me?.id === String(a.id) && <span className="text-muted-foreground"> (siz)</span>}</span>
+                      <span className="font-medium text-foreground">{a.name}{me?.id === String(a.id) && <span className="text-muted-foreground"> (you)</span>}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono">{a.email}</td>
@@ -215,21 +215,21 @@ export default function Admins() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${a.is_active ? "text-emerald-400 bg-emerald-400/10" : "text-muted-foreground bg-muted/50"}`}>
-                      {a.is_active ? "Faol" : "O'chirilgan"}
+                      {a.is_active ? "Active" : "Disabled"}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => setPwAdmin(a)} title="Parolni o'zgartirish" className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><KeyRound size={13} /></button>
-                      <button onClick={() => toggleRole(a)} title="Rolni almashtirish" className="p-1.5 rounded hover:bg-purple-400/10 text-muted-foreground hover:text-purple-400 transition-colors"><RotateCw size={13} /></button>
-                      <button onClick={() => toggleActive(a)} disabled={me?.id === String(a.id)} title={a.is_active ? "O'chirish" : "Yoqish"} className="p-1.5 rounded hover:bg-amber-400/10 text-muted-foreground hover:text-amber-400 disabled:opacity-30 transition-colors"><Ban size={13} /></button>
-                      <button onClick={() => remove(a)} disabled={me?.id === String(a.id)} title="O'chirish" className="p-1.5 rounded hover:bg-red-400/10 text-muted-foreground hover:text-red-500 disabled:opacity-30 transition-colors"><Trash2 size={13} /></button>
+                      <button onClick={() => setPwAdmin(a)} title="Change password" className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><KeyRound size={13} /></button>
+                      <button onClick={() => toggleRole(a)} title="Switch role" className="p-1.5 rounded hover:bg-purple-400/10 text-muted-foreground hover:text-purple-400 transition-colors"><RotateCw size={13} /></button>
+                      <button onClick={() => toggleActive(a)} disabled={me?.id === String(a.id)} title={a.is_active ? "Disable" : "Enable"} className="p-1.5 rounded hover:bg-amber-400/10 text-muted-foreground hover:text-amber-400 disabled:opacity-30 transition-colors"><Ban size={13} /></button>
+                      <button onClick={() => remove(a)} disabled={me?.id === String(a.id)} title="Delete" className="p-1.5 rounded hover:bg-red-400/10 text-muted-foreground hover:text-red-500 disabled:opacity-30 transition-colors"><Trash2 size={13} /></button>
                     </div>
                   </td>
                 </tr>
               ))}
               {!isLoading && !forbidden && (data ?? []).length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Adminlar yo'q</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No admins</td></tr>
               )}
             </tbody>
           </table>

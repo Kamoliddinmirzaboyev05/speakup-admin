@@ -7,23 +7,23 @@ import {
 import { useAuthStore } from "../store/authStore";
 
 const NAV = [
-  { to: "/", icon: LayoutDashboard, label: "Boshqaruv" },
-  { to: "/users", icon: Users, label: "Foydalanuvchilar" },
-  { to: "/leaderboard", icon: Trophy, label: "Reyting" },
-  { to: "/sessions", icon: Mic, label: "Sessiyalar" },
-  { to: "/questions", icon: BookOpen, label: "Savollar" },
-  { to: "/feedback", icon: MessageSquare, label: "Sharhlar" },
-  { to: "/admins", icon: ShieldCheck, label: "Adminlar" },
+  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/users", icon: Users, label: "Users" },
+  { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
+  { to: "/sessions", icon: Mic, label: "Sessions" },
+  { to: "/questions", icon: BookOpen, label: "Questions" },
+  { to: "/feedback", icon: MessageSquare, label: "Reviews" },
+  { to: "/admins", icon: ShieldCheck, label: "Admins" },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
-  "/": "Boshqaruv paneli",
-  "/users": "Foydalanuvchilar",
-  "/leaderboard": "Reyting",
-  "/sessions": "Sessiyalar",
-  "/questions": "Savollar (IELTS)",
-  "/feedback": "Sharhlar",
-  "/admins": "Adminlar",
+  "/": "Dashboard",
+  "/users": "Users",
+  "/leaderboard": "Leaderboard",
+  "/sessions": "Sessions",
+  "/questions": "Questions (IELTS)",
+  "/feedback": "Reviews",
+  "/admins": "Admins",
 };
 
 function Avatar({ name, size = "sm" }: { name: string; size?: "sm" | "md" }) {
@@ -109,7 +109,7 @@ export default function Layout() {
           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all ${sidebarCollapsed ? "justify-center" : ""}`}
         >
           <LogOut size={16} />
-          {!sidebarCollapsed && <span>Chiqish</span>}
+          {!sidebarCollapsed && <span>Log out</span>}
         </button>
       </div>
     </div>

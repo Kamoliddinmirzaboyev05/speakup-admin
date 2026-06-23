@@ -73,37 +73,37 @@ function QuestionsEditor({ group }: { group: TopicGroup }) {
           )}
         </div>
       ))}
-      {!isLoading && (data ?? []).length === 0 && <p className="text-xs text-muted-foreground text-center py-2">Hali savol yo'q — pastdan qo'shing.</p>}
+      {!isLoading && (data ?? []).length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No questions yet — add one below.</p>}
 
       {/* Fast inline add: type + Enter adds and clears for the next */}
       <div className="flex gap-2 pt-1">
         <input
           value={text} onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
-          placeholder="Savol yozing va Enter bosing…" className={inputCls}
+          placeholder="Type a question and press Enter…" className={inputCls}
         />
         <button onClick={add} disabled={m.create.isPending || !text.trim()} className="px-3 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1 shrink-0">
-          {m.create.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Qo'shish
+          {m.create.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Add
         </button>
       </div>
 
       {/* Bulk add: paste a whole list, one question per line */}
       <button onClick={() => setBulkOpen((v) => !v)} className="text-[11px] text-primary hover:underline">
-        {bulkOpen ? "− Ko'p savolni yashirish" : "+ Ko'p savol qo'shish (har qatorda bittadan)"}
+        {bulkOpen ? "− Hide extra questions" : "+ Add multiple questions (one per line)"}
       </button>
       {bulkOpen && (
         <div className="space-y-2">
           <textarea
             value={bulk} onChange={(e) => setBulk(e.target.value)} rows={6}
-            placeholder={"Har qatorga bitta savol yozing yoki ro'yxatni yopishtiring…\nDo you work or study?\nWhere is your hometown?"}
+            placeholder={"Type one question per line, or paste a list…\nDo you work or study?\nWhere is your hometown?"}
             className={`${inputCls} resize-y font-mono`}
           />
           <div className="flex items-center justify-between">
             <span className="text-[10px] text-muted-foreground">
-              {bulk.split("\n").map((l) => l.trim()).filter(Boolean).length} ta savol tayyor
+              {bulk.split("\n").map((l) => l.trim()).filter(Boolean).length} questions ready
             </span>
             <button onClick={addBulk} disabled={bulkBusy || !bulk.trim()} className="px-3 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1 shrink-0">
-              {bulkBusy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Hammasini qo'shish
+              {bulkBusy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Add all
             </button>
           </div>
         </div>
@@ -128,21 +128,21 @@ function GroupModal({ group, onClose }: { group: TopicGroup; onClose: () => void
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={onClose}>
       <div className="bg-card border border-border rounded-2xl w-full max-w-sm shadow-2xl p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">Guruhni tahrirlash</h3>
+          <h3 className="text-sm font-semibold text-foreground">Edit group</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
         </div>
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">Sarlavha</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="Masalan: Work and studies" autoFocus />
+            <label className="text-xs text-muted-foreground block mb-1">Title</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="e.g. Work and studies" autoFocus />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">Teg (ixtiyoriy)</label>
-            <input value={tag} onChange={(e) => setTag(e.target.value)} className={inputCls} placeholder="Free answers / NEW TOPIC / sana" />
+            <label className="text-xs text-muted-foreground block mb-1">Tag (optional)</label>
+            <input value={tag} onChange={(e) => setTag(e.target.value)} className={inputCls} placeholder="Free answers / NEW TOPIC / date" />
           </div>
           <div className="flex gap-2 mt-5">
-            <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground">Bekor</button>
-            <button onClick={save} disabled={m.update.isPending} className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-60">Saqlash</button>
+            <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+            <button onClick={save} disabled={m.update.isPending} className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-60">Save</button>
           </div>
         </div>
       </div>
@@ -191,15 +191,15 @@ export default function Questions() {
         <input
           value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addGroup()}
-          placeholder={`Part ${part} uchun yangi guruh nomi…`} className={`${inputCls} flex-1`}
+          placeholder={`New group name for Part ${part}…`} className={`${inputCls} flex-1`}
         />
         <input
           value={newTag} onChange={(e) => setNewTag(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addGroup()}
-          placeholder="Teg (ixtiyoriy)" className={`${inputCls} sm:w-44`}
+          placeholder="Tag (optional)" className={`${inputCls} sm:w-44`}
         />
         <button onClick={addGroup} disabled={m.create.isPending || !newTitle.trim()} className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-1.5 shrink-0">
-          {m.create.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plus size={14} />} Guruh qo'shish
+          {m.create.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plus size={14} />} Add group
         </button>
       </div>
 
@@ -219,19 +219,19 @@ export default function Questions() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-foreground">{g.title}</p>
                     {g.tag && <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${pc.ring}`}>{g.tag}</span>}
-                    {!g.is_active && <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">yashirin</span>}
+                    {!g.is_active && <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">hidden</span>}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">{g.question_count} ta savol</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{g.question_count} questions</p>
                 </div>
-                <button onClick={() => m.update.mutate({ id: g.id, d: { is_active: !g.is_active } })} title={g.is_active ? "Yashirish" : "Ko'rsatish"} className="p-2 rounded-lg hover:bg-amber-400/10 text-muted-foreground hover:text-amber-400">{g.is_active ? <Eye size={15} /> : <EyeOff size={15} />}</button>
-                <button onClick={() => setEditGroup(g)} title="Tahrirlash" className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary"><Pencil size={15} /></button>
-                <button onClick={() => { if (confirm(`"${g.title}" guruhini o'chirasizmi?`)) m.remove.mutate(g.id); }} title="O'chirish" className="p-2 rounded-lg hover:bg-red-400/10 text-muted-foreground hover:text-red-500"><Trash2 size={15} /></button>
+                <button onClick={() => m.update.mutate({ id: g.id, d: { is_active: !g.is_active } })} title={g.is_active ? "Hide" : "Show"} className="p-2 rounded-lg hover:bg-amber-400/10 text-muted-foreground hover:text-amber-400">{g.is_active ? <Eye size={15} /> : <EyeOff size={15} />}</button>
+                <button onClick={() => setEditGroup(g)} title="Edit" className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary"><Pencil size={15} /></button>
+                <button onClick={() => { if (confirm(`Delete group "${g.title}"?`)) m.remove.mutate(g.id); }} title="Delete" className="p-2 rounded-lg hover:bg-red-400/10 text-muted-foreground hover:text-red-500"><Trash2 size={15} /></button>
               </div>
               {isOpen && <QuestionsEditor group={g} />}
             </div>
           );
         })}
-        {!isLoading && (data ?? []).length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Bu partda guruh yo'q. Yuqoridagi maydondan qo'shing.</p>}
+        {!isLoading && (data ?? []).length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No groups in this part. Add one in the field above.</p>}
       </div>
 
       {editGroup && <GroupModal group={editGroup} onClose={() => setEditGroup(null)} />}

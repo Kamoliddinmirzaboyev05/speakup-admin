@@ -19,7 +19,7 @@ export default function Login() {
     const ok = await login(email, password);
     setLoading(false);
     if (ok) navigate("/");
-    else setError("Email yoki parol noto'g'ri");
+    else setError("Incorrect email or password");
   };
 
   return (
@@ -47,8 +47,8 @@ export default function Login() {
             </div>
           </div>
 
-          <h2 className="text-xl font-semibold text-foreground mb-1">Kirish</h2>
-          <p className="text-sm text-muted-foreground mb-6">Davom etish uchun admin ma'lumotlaringizni kiriting</p>
+          <h2 className="text-xl font-semibold text-foreground mb-1">Sign in</h2>
+          <p className="text-sm text-muted-foreground mb-6">Enter your admin credentials to continue</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -64,7 +64,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Parol</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
@@ -96,12 +96,12 @@ export default function Login() {
               className="w-full bg-primary hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-all mt-2"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-              {loading ? "Kirilmoqda…" : "Kirish"}
+              {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
           <p className="text-xs text-muted-foreground text-center mt-6">
-            SpeakUp Admin panel · Faqat ruxsat etilganlar uchun
+            SpeakUp Admin panel · Authorized personnel only
           </p>
         </div>
       </div>
