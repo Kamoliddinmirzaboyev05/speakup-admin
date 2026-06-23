@@ -1,10 +1,9 @@
 import axios from "axios";
 
-// Prefer VITE_API_URL. Otherwise prod builds hit the live API; dev uses localhost.
+// API base URL comes from VITE_API_URL (.env / Vercel env). Falls back to the
+// local backend for dev when unset. No hardcoded production URL here.
 const _env = (import.meta as unknown as { env: Record<string, string> }).env;
-const BASE_URL =
-  _env?.VITE_API_URL ||
-  (_env?.PROD ? "https://speakupapi.webportfolio.uz" : "http://localhost:8000");
+const BASE_URL = _env?.VITE_API_URL || "http://localhost:8000";
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
