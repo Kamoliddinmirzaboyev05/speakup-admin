@@ -24,12 +24,29 @@ function QuestionsEditor({ group }: { group: TopicGroup }) {
   const [text, setText] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulk, setBulk] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const add = async () => {
     const t = text.trim();
     if (!t) return;
     await m.create.mutateAsync(t);
     setText(""); // keep focus to add the next one fast
+  };
+
+  // Bulk add: paste many questions (one per line) and create them all.
+  const addBulk = async () => {
+    const lines = bulk.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) return;
+    setBulkBusy(true);
+    try {
+      for (const line of lines) await m.create.mutateAsync(line);
+      setBulk("");
+      setBulkOpen(false);
+    } finally {
+      setBulkBusy(false);
+    }
   };
 
   return (
@@ -69,6 +86,28 @@ function QuestionsEditor({ group }: { group: TopicGroup }) {
           {m.create.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Qo'shish
         </button>
       </div>
+
+      {/* Bulk add: paste a whole list, one question per line */}
+      <button onClick={() => setBulkOpen((v) => !v)} className="text-[11px] text-primary hover:underline">
+        {bulkOpen ? "− Ko'p savolni yashirish" : "+ Ko'p savol qo'shish (har qatorda bittadan)"}
+      </button>
+      {bulkOpen && (
+        <div className="space-y-2">
+          <textarea
+            value={bulk} onChange={(e) => setBulk(e.target.value)} rows={6}
+            placeholder={"Har qatorga bitta savol yozing yoki ro'yxatni yopishtiring…\nDo you work or study?\nWhere is your hometown?"}
+            className={`${inputCls} resize-y font-mono`}
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-muted-foreground">
+              {bulk.split("\n").map((l) => l.trim()).filter(Boolean).length} ta savol tayyor
+            </span>
+            <button onClick={addBulk} disabled={bulkBusy || !bulk.trim()} className="px-3 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1 shrink-0">
+              {bulkBusy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Hammasini qo'shish
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
