@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Search, X } from "lucide-react";
-import { useUsers } from "@/hooks/queries";
+import { useEffect, useState } from "react";
+import { Search, X, Trash2, Loader2 } from "lucide-react";
+import { useUsers, useDeleteUser } from "@/hooks/queries";
+import { adminService } from "@/services/admin";
 import { SkeletonTableRows } from "@/components/Skeleton";
 import type { AdminUser, UserLevel } from "@/types";
 
@@ -15,16 +16,58 @@ const levelBadge: Record<UserLevel, string> = {
   advanced: "text-purple-400 bg-purple-400/10 border-purple-400/20",
 };
 
-function Avatar({ name }: { name: string }) {
+function initials(name: string) {
+  return (name || "?").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+}
+
+// Shows the user's Telegram profile photo when available (fetched as an authed
+// blob), falling back to initials. The object URL is revoked on unmount.
+function UserAvatar({ user, size = 32 }: { user: AdminUser; size?: number }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!user.has_photo) { setUrl(null); return; }
+    let alive = true;
+    let obj: string | null = null;
+    adminService
+      .getUserPhoto(user.id)
+      .then((u) => { if (alive) { obj = u; setUrl(u); } else { URL.revokeObjectURL(u); } })
+      .catch(() => {});
+    return () => { alive = false; if (obj) URL.revokeObjectURL(obj); };
+  }, [user.id, user.has_photo]);
+
+  const name = user.first_name || user.username || `#${user.id}`;
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={name}
+        className="rounded-full object-cover shrink-0"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
   return (
-    <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-[11px] font-semibold text-primary shrink-0">
-      {(name || "?").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+    <div
+      className="rounded-full bg-primary/15 flex items-center justify-center font-semibold text-primary shrink-0"
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.34) }}
+    >
+      {initials(name)}
     </div>
   );
 }
 
 function UserModal({ user, onClose }: { user: AdminUser; onClose: () => void }) {
   const name = user.first_name || user.username || `#${user.id}`;
+  const del = useDeleteUser();
+  const [confirm, setConfirm] = useState(false);
+  const onDelete = async () => {
+    try {
+      await del.mutateAsync(user.id);
+      onClose();
+    } catch {
+      /* surfaced by the disabled state; keep modal open */
+    }
+  };
   const rows: [string, string | number][] = [
     ["Telegram ID", user.telegram_id],
     ["Username", user.username ? `@${user.username}` : "—"],
@@ -49,9 +92,7 @@ function UserModal({ user, onClose }: { user: AdminUser; onClose: () => void }) 
         </div>
         <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center text-xl font-bold text-primary">
-              {(name[0] ?? "?").toUpperCase()}
-            </div>
+            <UserAvatar user={user} size={56} />
             <div>
               <div className="text-base font-semibold text-foreground">{name}</div>
               {user.username && <div className="text-xs text-muted-foreground">@{user.username}</div>}
@@ -70,6 +111,41 @@ function UserModal({ user, onClose }: { user: AdminUser; onClose: () => void }) 
               </div>
             ))}
           </div>
+
+          <div className="pt-1">
+            {!confirm ? (
+              <button
+                onClick={() => setConfirm(true)}
+                className="flex items-center gap-2 text-xs font-medium text-red-400 hover:text-red-300 transition-colors"
+              >
+                <Trash2 size={14} /> Delete user
+              </button>
+            ) : (
+              <div className="space-y-2.5 rounded-lg border border-red-500/30 bg-red-500/5 p-3">
+                <p className="text-xs text-muted-foreground">
+                  Permanently delete <span className="text-foreground font-medium">{name}</span> and all their
+                  sessions, ratings and feedback? This can't be undone.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirm(false)}
+                    disabled={del.isPending}
+                    className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={onDelete}
+                    disabled={del.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-red-500 text-white text-xs font-semibold hover:bg-red-600 disabled:opacity-50 transition-colors"
+                  >
+                    {del.isPending ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                    Confirm delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -82,6 +158,15 @@ export default function Users() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<AdminUser | null>(null);
+
+  const del = useDeleteUser();
+  const removeUser = (e: { stopPropagation: () => void }, u: AdminUser) => {
+    e.stopPropagation();
+    const name = u.first_name || u.username || `#${u.id}`;
+    if (window.confirm(`Delete ${name}? This permanently removes the user and all their data.`)) {
+      del.mutate(u.id);
+    }
+  };
 
   const { data, isLoading } = useUsers({ search: search || undefined, limit: PER_PAGE, offset: page * PER_PAGE });
   const items = data?.items ?? [];
@@ -109,6 +194,7 @@ export default function Users() {
                 {["User", "Level", "Phone", "Location", "Minutes", "Streak", "Sessions", "Registered"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-muted-foreground font-medium">{h}</th>
                 ))}
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
@@ -119,7 +205,7 @@ export default function Users() {
                   <tr key={u.id} className="border-b border-border/50 hover:bg-muted/20 cursor-pointer" onClick={() => setSelected(u)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <Avatar name={name} />
+                        <UserAvatar user={u} />
                         <div>
                           <div className="font-medium text-foreground">{name}</div>
                           {u.username && <div className="text-muted-foreground">@{u.username}</div>}
@@ -135,10 +221,20 @@ export default function Users() {
                     <td className="px-4 py-3"><span className="text-amber-400">🔥 {u.streak}</span></td>
                     <td className="px-4 py-3 font-mono text-foreground">{u.sessions_count}</td>
                     <td className="px-4 py-3 text-muted-foreground font-mono">{new Date(u.created_at).toLocaleDateString("en", { month: "short", day: "numeric", year: "2-digit" })}</td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={(e) => removeUser(e, u)}
+                        disabled={del.isPending}
+                        title="Delete user"
+                        className="text-muted-foreground hover:text-red-400 disabled:opacity-40 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
-              {!isLoading && items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No users found</td></tr>}
+              {!isLoading && items.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No users found</td></tr>}
             </tbody>
           </table>
         </div>

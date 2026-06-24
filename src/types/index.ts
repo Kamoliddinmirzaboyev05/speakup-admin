@@ -19,6 +19,7 @@ export interface AdminUser {
   streak: number;
   onboarded: boolean;
   sessions_count: number;
+  has_photo: boolean;
   created_at: string;
   last_practice_date: string | null;
 }

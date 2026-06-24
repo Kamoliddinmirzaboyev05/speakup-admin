@@ -30,6 +30,14 @@ export const useUsers = (params?: UserQuery) =>
     queryFn: () => adminService.getUsers(params),
   });
 
+export const useDeleteUser = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => adminService.deleteUser(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.users }),
+  });
+};
+
 export const useSessions = (params?: { limit?: number; offset?: number }) =>
   useQuery({
     queryKey: [...queryKeys.sessions, params ?? {}],
