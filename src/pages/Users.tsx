@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, X, Trash2, Loader2 } from "lucide-react";
+import { Search, X, Trash2, Loader2, AlertTriangle } from "lucide-react";
 import { useUsers, useDeleteUser } from "@/hooks/queries";
 import { adminService } from "@/services/admin";
 import { SkeletonTableRows } from "@/components/Skeleton";
@@ -56,18 +56,83 @@ function UserAvatar({ user, size = 32 }: { user: AdminUser; size?: number }) {
   );
 }
 
-function UserModal({ user, onClose }: { user: AdminUser; onClose: () => void }) {
+// Standalone confirm dialog used both from a table row's trash icon and from
+// the profile modal's "Delete user" action. Shows the real error message on
+// failure instead of silently swallowing it, so a stuck delete is visible.
+function DeleteConfirmModal({
+  user, onClose, onDeleted,
+}: { user: AdminUser; onClose: () => void; onDeleted: () => void }) {
   const name = user.first_name || user.username || `#${user.id}`;
   const del = useDeleteUser();
-  const [confirm, setConfirm] = useState(false);
-  const onDelete = async () => {
+  const [error, setError] = useState<string | null>(null);
+
+  const confirmDelete = async () => {
+    setError(null);
     try {
       await del.mutateAsync(user.id);
-      onClose();
-    } catch {
-      /* surfaced by the disabled state; keep modal open */
+      onDeleted();
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      setError(
+        e?.response?.status === 404
+          ? "User was already deleted."
+          : typeof detail === "string"
+          ? detail
+          : "Could not delete this user. Please try again."
+      );
     }
   };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60" onClick={onClose}>
+      <div
+        className="bg-card border border-border rounded-2xl w-full max-w-sm shadow-2xl p-6 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
+            <AlertTriangle size={18} className="text-red-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Delete user?</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">This action can't be undone.</p>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Permanently delete <span className="text-foreground font-medium">{name}</span> and all their
+          sessions, ratings and feedback.
+        </p>
+        {error && (
+          <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={onClose}
+            disabled={del.isPending}
+            className="flex-1 px-3 py-2 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmDelete}
+            disabled={del.isPending}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-red-500 text-white text-xs font-semibold hover:bg-red-600 disabled:opacity-50 transition-colors"
+          >
+            {del.isPending ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UserModal({
+  user, onClose, onRequestDelete,
+}: { user: AdminUser; onClose: () => void; onRequestDelete: (u: AdminUser) => void }) {
+  const name = user.first_name || user.username || `#${user.id}`;
   const rows: [string, string | number][] = [
     ["Telegram ID", user.telegram_id],
     ["Username", user.username ? `@${user.username}` : "—"],
@@ -113,38 +178,12 @@ function UserModal({ user, onClose }: { user: AdminUser; onClose: () => void }) 
           </div>
 
           <div className="pt-1">
-            {!confirm ? (
-              <button
-                onClick={() => setConfirm(true)}
-                className="flex items-center gap-2 text-xs font-medium text-red-400 hover:text-red-300 transition-colors"
-              >
-                <Trash2 size={14} /> Delete user
-              </button>
-            ) : (
-              <div className="space-y-2.5 rounded-lg border border-red-500/30 bg-red-500/5 p-3">
-                <p className="text-xs text-muted-foreground">
-                  Permanently delete <span className="text-foreground font-medium">{name}</span> and all their
-                  sessions, ratings and feedback? This can't be undone.
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setConfirm(false)}
-                    disabled={del.isPending}
-                    className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={onDelete}
-                    disabled={del.isPending}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-red-500 text-white text-xs font-semibold hover:bg-red-600 disabled:opacity-50 transition-colors"
-                  >
-                    {del.isPending ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                    Confirm delete
-                  </button>
-                </div>
-              </div>
-            )}
+            <button
+              onClick={() => onRequestDelete(user)}
+              className="flex items-center gap-2 text-xs font-medium text-red-400 hover:text-red-300 transition-colors"
+            >
+              <Trash2 size={14} /> Delete user
+            </button>
           </div>
         </div>
       </div>
@@ -158,15 +197,7 @@ export default function Users() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<AdminUser | null>(null);
-
-  const del = useDeleteUser();
-  const removeUser = (e: { stopPropagation: () => void }, u: AdminUser) => {
-    e.stopPropagation();
-    const name = u.first_name || u.username || `#${u.id}`;
-    if (window.confirm(`Delete ${name}? This permanently removes the user and all their data.`)) {
-      del.mutate(u.id);
-    }
-  };
+  const [deleting, setDeleting] = useState<AdminUser | null>(null);
 
   const { data, isLoading } = useUsers({ search: search || undefined, limit: PER_PAGE, offset: page * PER_PAGE });
   const items = data?.items ?? [];
@@ -223,10 +254,9 @@ export default function Users() {
                     <td className="px-4 py-3 text-muted-foreground font-mono">{new Date(u.created_at).toLocaleDateString("en", { month: "short", day: "numeric", year: "2-digit" })}</td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={(e) => removeUser(e, u)}
-                        disabled={del.isPending}
+                        onClick={(e) => { e.stopPropagation(); setDeleting(u); }}
                         title="Delete user"
-                        className="text-muted-foreground hover:text-red-400 disabled:opacity-40 transition-colors"
+                        className="text-muted-foreground hover:text-red-400 transition-colors"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -249,7 +279,20 @@ export default function Users() {
         </div>
       </div>
 
-      {selected && <UserModal user={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <UserModal
+          user={selected}
+          onClose={() => setSelected(null)}
+          onRequestDelete={(u) => setDeleting(u)}
+        />
+      )}
+      {deleting && (
+        <DeleteConfirmModal
+          user={deleting}
+          onClose={() => setDeleting(null)}
+          onDeleted={() => { setDeleting(null); setSelected(null); }}
+        />
+      )}
     </div>
   );
 }
