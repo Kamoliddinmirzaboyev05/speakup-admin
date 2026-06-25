@@ -23,6 +23,7 @@ const MAX_PHOTO_MB = 6;
 const MAX_PHOTO_BYTES = MAX_PHOTO_MB * 1024 * 1024;
 const CAPTION_LIMIT = 1024;
 const MESSAGE_LIMIT = 3900;
+type ButtonMode = "web_app" | "url";
 
 const inputCls =
   "w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-primary/70 disabled:opacity-60";
@@ -45,6 +46,7 @@ const TEMPLATES = [
       "SpeakUp sizni real hamroh bilan tez ulaydi. 10 daqiqalik suhbat ham talaffuz, fluency va confidence uchun katta qadam.\n\nBugun bitta suhbat qilib, ingliz tilingizni jonli mashq qiling.",
     buttonText: "🎙 Hamroh topish",
     buttonUrl: MINIAPP_FIND_URL,
+    buttonMode: "web_app" as ButtonMode,
   },
   {
     id: "news",
@@ -55,6 +57,7 @@ const TEMPLATES = [
       "Bugun botimizda yangi imkoniyatlar ishga tushdi. Endi speaking practice qilish yanada tezroq, qulayroq va jonliroq.\n\nIlovani ochib, o'zingiz sinab ko'ring.",
     buttonText: "🚀 Ilovani ochish",
     buttonUrl: MINIAPP_FIND_URL,
+    buttonMode: "web_app" as ButtonMode,
   },
   {
     id: "promo",
@@ -65,6 +68,7 @@ const TEMPLATES = [
       "Ingliz tilida erkin gapirish kitob o'qish bilan emas, real suhbat bilan ochiladi.\n\nBugun SpeakUp orqali hamroh toping va kamida 10 daqiqa gapiring. Kichik odat katta natija beradi.",
     buttonText: "🔥 Boshlash",
     buttonUrl: MINIAPP_FIND_URL,
+    buttonMode: "web_app" as ButtonMode,
   },
   {
     id: "reminder",
@@ -75,6 +79,7 @@ const TEMPLATES = [
       "Agar bugun 10 daqiqa practice qilsangiz, kechagidan kuchliroq bo'lasiz.\n\nSpeakUp sizga darajangizga yaqin hamroh topishga yordam beradi.",
     buttonText: "🎯 Practice qilish",
     buttonUrl: MINIAPP_FIND_URL,
+    buttonMode: "web_app" as ButtonMode,
   },
 ];
 
@@ -136,6 +141,7 @@ export default function Broadcast() {
   const [body, setBody] = useState(TEMPLATES[0].body);
   const [buttonText, setButtonText] = useState(TEMPLATES[0].buttonText);
   const [buttonUrl, setButtonUrl] = useState(TEMPLATES[0].buttonUrl);
+  const [buttonMode, setButtonMode] = useState<ButtonMode>(TEMPLATES[0].buttonMode);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [confirmText, setConfirmText] = useState("");
@@ -160,6 +166,7 @@ export default function Broadcast() {
   const usesFollowupMessage = Boolean(photo) && estimatedLength > CAPTION_LIMIT;
   const hasButtonHalf = Boolean(buttonText.trim()) !== Boolean(buttonUrl.trim());
   const urlIsSafe = isSafeButtonUrl(buttonUrl);
+  const webAppUrlIsSafe = buttonMode !== "web_app" || !buttonUrl.trim() || buttonUrl.trim().startsWith("https://");
   const confirmOk = confirmText.trim().toUpperCase() === "SEND";
 
   const sendMutation = useMutation({
@@ -170,6 +177,7 @@ export default function Broadcast() {
         body,
         button_text: buttonText,
         button_url: buttonUrl,
+        button_mode: buttonMode,
         photo,
       }),
     onSuccess: (data) => {
@@ -185,6 +193,7 @@ export default function Broadcast() {
     estimatedLength <= MESSAGE_LIMIT &&
     !hasButtonHalf &&
     urlIsSafe &&
+    webAppUrlIsSafe &&
     !photoError &&
     confirmOk &&
     !sendMutation.isPending;
@@ -194,6 +203,7 @@ export default function Broadcast() {
     setBody(template.body);
     setButtonText(template.buttonText);
     setButtonUrl(template.buttonUrl);
+    setButtonMode(template.buttonMode);
     setConfirmText("");
     setResult(null);
   };
@@ -332,7 +342,7 @@ export default function Broadcast() {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-4">
+        <div className="grid lg:grid-cols-[1fr_1fr_180px] gap-4">
           <label className="space-y-1.5">
             <span className={labelCls}>Button text</span>
             <input
@@ -353,6 +363,17 @@ export default function Broadcast() {
                 className={`${inputCls} pl-9`}
               />
             </div>
+          </label>
+          <label className="space-y-1.5">
+            <span className={labelCls}>Button mode</span>
+            <select
+              value={buttonMode}
+              onChange={(e) => setButtonMode(e.target.value as ButtonMode)}
+              className={inputCls}
+            >
+              <option value="web_app">Mini App (TMA)</option>
+              <option value="url">External link</option>
+            </select>
           </label>
         </div>
 
@@ -395,12 +416,13 @@ export default function Broadcast() {
           </label>
         </div>
 
-        {(hasButtonHalf || !urlIsSafe || estimatedLength > MESSAGE_LIMIT || sendMutation.error) && (
+        {(hasButtonHalf || !urlIsSafe || !webAppUrlIsSafe || estimatedLength > MESSAGE_LIMIT || sendMutation.error) && (
           <div className="rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-xs text-red-300 flex gap-2">
             <AlertTriangle size={15} className="shrink-0" />
             <div>
               {hasButtonHalf && <p>Button text va URL ikkalasi ham to'ldirilishi kerak.</p>}
               {!urlIsSafe && <p>URL http://, https:// yoki tg:// bilan boshlanishi kerak.</p>}
+              {!webAppUrlIsSafe && <p>Mini App tugmasi uchun URL https:// bilan boshlanishi kerak.</p>}
               {estimatedLength > MESSAGE_LIMIT && <p>Matn Telegram limiti uchun juda uzun.</p>}
               {sendMutation.error && (
                 <p>{(sendMutation.error as any)?.response?.data?.detail || "Broadcast yuborilmadi."}</p>
@@ -447,6 +469,9 @@ export default function Broadcast() {
             {buttonText && buttonUrl && (
               <div className="mt-2 max-w-[360px] rounded-lg bg-[#1f2f3f] px-3 py-2.5 text-center text-sm font-semibold text-white">
                 {buttonText}
+                <div className="text-[10px] font-normal text-slate-300">
+                  {buttonMode === "web_app" ? "opens Mini App" : "opens link"}
+                </div>
               </div>
             )}
             {usesFollowupMessage && (

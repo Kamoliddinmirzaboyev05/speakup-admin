@@ -8,6 +8,7 @@ export interface BroadcastInput {
   body: string;
   button_text?: string;
   button_url?: string;
+  button_mode?: "url" | "web_app";
   photo?: File | null;
 }
 
@@ -35,6 +36,7 @@ export const broadcastService = {
     fd.append("body", input.body);
     if (input.button_text?.trim()) fd.append("button_text", input.button_text.trim());
     if (input.button_url?.trim()) fd.append("button_url", input.button_url.trim());
+    if (input.button_mode) fd.append("button_mode", input.button_mode);
     if (input.photo) fd.append("photo", input.photo);
 
     const res = await apiClient.post<BroadcastResult>("/api/admin/broadcast", fd, {
