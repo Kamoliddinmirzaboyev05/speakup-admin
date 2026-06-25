@@ -13,11 +13,13 @@ import axios from "axios";
 // Point an explicit VITE_API_URL at a local backend only when you actually run
 // one; otherwise the panel talks to prod and login behaves correctly.
 const PROD_API = "https://speakupapi.webportfolio.uz";
-const _meta = import.meta as unknown as { env: Record<string, string> & { PROD?: boolean } };
+const _meta = import.meta as unknown as { env: Record<string, string> & { BASE_URL?: string; PROD?: boolean } };
 const _env = _meta.env;
 const _base = _env?.PROD ? PROD_API : (_env?.VITE_API_URL || PROD_API);
 // Strip trailing slash(es) so axios baseURL + "/api/..." never doubles up.
 const BASE_URL = _base.replace(/\/+$/, "");
+const APP_BASE = (_env?.BASE_URL || "/").replace(/\/+$/, "");
+const LOGIN_PATH = `${APP_BASE}/login`.replace(/^\/?/, "/");
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -44,7 +46,7 @@ apiClient.interceptors.response.use(
     const isLogin = url.includes("/admin/auth/login");
     if (err.response?.status === 401 && !isLogin) {
       localStorage.removeItem("speakup-admin-auth");
-      window.location.href = "/login";
+      window.location.href = LOGIN_PATH;
     }
     return Promise.reject(err);
   }

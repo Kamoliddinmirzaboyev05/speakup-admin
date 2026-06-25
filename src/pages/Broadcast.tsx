@@ -1,0 +1,463 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ImagePlus,
+  Link2,
+  Megaphone,
+  Send,
+  Sparkles,
+  Users,
+  X,
+} from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  broadcastService,
+  type BroadcastAudience,
+  type BroadcastAudienceCounts,
+  type BroadcastResult,
+} from "@/services/broadcast";
+
+const MINIAPP_FIND_URL = "https://speakupapi.webportfolio.uz?find=1";
+const MAX_PHOTO_MB = 6;
+const MAX_PHOTO_BYTES = MAX_PHOTO_MB * 1024 * 1024;
+const CAPTION_LIMIT = 1024;
+const MESSAGE_LIMIT = 3900;
+
+const inputCls =
+  "w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-primary/70 disabled:opacity-60";
+const labelCls = "text-xs font-medium text-muted-foreground";
+const cardCls = "bg-card border border-border rounded-lg";
+
+const AUDIENCE_LABELS: Record<BroadcastAudience, string> = {
+  onboarded: "Onboardingdan o'tganlar",
+  not_onboarded: "Onboardingdan o'tmaganlar",
+  all: "Barcha foydalanuvchilar",
+};
+
+const TEMPLATES = [
+  {
+    id: "practice",
+    label: "Practice",
+    icon: "🎙",
+    title: "🎙 Bugun speaking practice qilamizmi?",
+    body:
+      "SpeakUp sizni real hamroh bilan tez ulaydi. 10 daqiqalik suhbat ham talaffuz, fluency va confidence uchun katta qadam.\n\nBugun bitta suhbat qilib, ingliz tilingizni jonli mashq qiling.",
+    buttonText: "🎙 Hamroh topish",
+    buttonUrl: MINIAPP_FIND_URL,
+  },
+  {
+    id: "news",
+    label: "Yangilik",
+    icon: "✨",
+    title: "✨ SpeakUp yangilandi",
+    body:
+      "Bugun botimizda yangi imkoniyatlar ishga tushdi. Endi speaking practice qilish yanada tezroq, qulayroq va jonliroq.\n\nIlovani ochib, o'zingiz sinab ko'ring.",
+    buttonText: "🚀 Ilovani ochish",
+    buttonUrl: MINIAPP_FIND_URL,
+  },
+  {
+    id: "promo",
+    label: "Reklama",
+    icon: "🔥",
+    title: "🔥 Speaking uchun bugungi chaqiriq",
+    body:
+      "Ingliz tilida erkin gapirish kitob o'qish bilan emas, real suhbat bilan ochiladi.\n\nBugun SpeakUp orqali hamroh toping va kamida 10 daqiqa gapiring. Kichik odat katta natija beradi.",
+    buttonText: "🔥 Boshlash",
+    buttonUrl: MINIAPP_FIND_URL,
+  },
+  {
+    id: "reminder",
+    label: "Eslatma",
+    icon: "⏰",
+    title: "⏰ Bugungi speaking vaqti keldi",
+    body:
+      "Agar bugun 10 daqiqa practice qilsangiz, kechagidan kuchliroq bo'lasiz.\n\nSpeakUp sizga darajangizga yaqin hamroh topishga yordam beradi.",
+    buttonText: "🎯 Practice qilish",
+    buttonUrl: MINIAPP_FIND_URL,
+  },
+];
+
+const EMOJIS = ["🎙", "🔥", "✨", "🚀", "✅", "🎯", "📣", "💬", "⭐", "⏰"];
+
+function splitParagraphs(text: string) {
+  return text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+}
+
+function countForAudience(counts: BroadcastAudienceCounts | undefined, audience: BroadcastAudience) {
+  return counts ? counts[audience] : 0;
+}
+
+function isSafeButtonUrl(url: string) {
+  const trimmed = url.trim();
+  return !trimmed || /^(https?:\/\/|tg:\/\/)/i.test(trimmed);
+}
+
+function htmlLength(title: string, body: string) {
+  const paragraphs = splitParagraphs(body);
+  const titleLength = title.trim().length + 7;
+  const bodyLength = paragraphs.length ? 2 + paragraphs.join("\n\n").length : 0;
+  return titleLength + bodyLength;
+}
+
+function ResultBox({ result }: { result: BroadcastResult }) {
+  return (
+    <div className={cardCls}>
+      <div className="p-4 border-b border-border flex items-center gap-2">
+        <CheckCircle2 size={16} className="text-emerald-400" />
+        <h3 className="text-sm font-semibold text-foreground">Yuborish natijasi</h3>
+      </div>
+      <div className="grid grid-cols-3 gap-2 p-4">
+        <div className="bg-muted/40 rounded-lg p-3">
+          <div className="text-lg font-bold font-mono text-foreground">{result.eligible}</div>
+          <div className="text-[11px] text-muted-foreground">audience</div>
+        </div>
+        <div className="bg-emerald-500/10 rounded-lg p-3">
+          <div className="text-lg font-bold font-mono text-emerald-400">{result.sent}</div>
+          <div className="text-[11px] text-muted-foreground">sent</div>
+        </div>
+        <div className="bg-red-500/10 rounded-lg p-3">
+          <div className="text-lg font-bold font-mono text-red-400">{result.failed}</div>
+          <div className="text-[11px] text-muted-foreground">failed</div>
+        </div>
+      </div>
+      {result.failures.length > 0 && (
+        <pre className="mx-4 mb-4 text-[11px] text-muted-foreground bg-background rounded-lg p-3 overflow-x-auto">
+          {result.failures.join("\n")}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+export default function Broadcast() {
+  const [audience, setAudience] = useState<BroadcastAudience>("onboarded");
+  const [title, setTitle] = useState(TEMPLATES[0].title);
+  const [body, setBody] = useState(TEMPLATES[0].body);
+  const [buttonText, setButtonText] = useState(TEMPLATES[0].buttonText);
+  const [buttonUrl, setButtonUrl] = useState(TEMPLATES[0].buttonUrl);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoError, setPhotoError] = useState("");
+  const [confirmText, setConfirmText] = useState("");
+  const [result, setResult] = useState<BroadcastResult | null>(null);
+
+  const countsQuery = useQuery({
+    queryKey: ["broadcast", "audience-counts"],
+    queryFn: broadcastService.counts,
+    staleTime: 20_000,
+  });
+
+  const previewUrl = useMemo(() => (photo ? URL.createObjectURL(photo) : ""), [photo]);
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const paragraphs = splitParagraphs(body);
+  const selectedCount = countForAudience(countsQuery.data, audience);
+  const estimatedLength = htmlLength(title, body);
+  const usesFollowupMessage = Boolean(photo) && estimatedLength > CAPTION_LIMIT;
+  const hasButtonHalf = Boolean(buttonText.trim()) !== Boolean(buttonUrl.trim());
+  const urlIsSafe = isSafeButtonUrl(buttonUrl);
+  const confirmOk = confirmText.trim().toUpperCase() === "SEND";
+
+  const sendMutation = useMutation({
+    mutationFn: () =>
+      broadcastService.send({
+        audience,
+        title,
+        body,
+        button_text: buttonText,
+        button_url: buttonUrl,
+        photo,
+      }),
+    onSuccess: (data) => {
+      setResult(data);
+      setConfirmText("");
+      countsQuery.refetch();
+    },
+  });
+
+  const canSend =
+    title.trim().length > 0 &&
+    body.trim().length > 0 &&
+    estimatedLength <= MESSAGE_LIMIT &&
+    !hasButtonHalf &&
+    urlIsSafe &&
+    !photoError &&
+    confirmOk &&
+    !sendMutation.isPending;
+
+  const applyTemplate = (template: (typeof TEMPLATES)[number]) => {
+    setTitle(template.title);
+    setBody(template.body);
+    setButtonText(template.buttonText);
+    setButtonUrl(template.buttonUrl);
+    setConfirmText("");
+    setResult(null);
+  };
+
+  const addEmoji = (emoji: string) => {
+    setBody((current) => `${current}${current.endsWith(" ") || current.endsWith("\n") ? "" : " "}${emoji}`);
+  };
+
+  const onPhotoChange = (file: File | null) => {
+    setPhotoError("");
+    if (!file) {
+      setPhoto(null);
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setPhoto(null);
+      setPhotoError("Faqat rasm fayl yuklang.");
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setPhoto(null);
+      setPhotoError(`Rasm ${MAX_PHOTO_MB} MB dan katta bo'lmasin.`);
+      return;
+    }
+    setPhoto(file);
+  };
+
+  return (
+    <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_440px] gap-5">
+      <form
+        className={`${cardCls} p-5 space-y-5`}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (canSend) sendMutation.mutate();
+        }}
+      >
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Megaphone size={18} className="text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Bot xabarlari</h2>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {TEMPLATES.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => applyTemplate(template)}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                >
+                  <span>{template.icon}</span>
+                  {template.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 min-w-[260px]">
+            {(["onboarded", "not_onboarded", "all"] as BroadcastAudience[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setAudience(key)}
+                className={`rounded-lg border px-2 py-2 text-left ${
+                  audience === key
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-muted/20 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <div className="text-sm font-bold font-mono">{countsQuery.isLoading ? "..." : countForAudience(countsQuery.data, key)}</div>
+                <div className="text-[10px] leading-tight">{key === "not_onboarded" ? "not onboarded" : key}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-[1fr_260px] gap-4">
+          <label className="space-y-1.5">
+            <span className={labelCls}>Sarlavha</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={120}
+              className={inputCls}
+            />
+          </label>
+
+          <label className="space-y-1.5">
+            <span className={labelCls}>Rasm</span>
+            <div className="flex items-center gap-2">
+              <label className="min-w-0 flex-1 border border-dashed border-border rounded-lg px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 cursor-pointer flex items-center gap-2">
+                <ImagePlus size={15} />
+                <span className="truncate">{photo ? photo.name : "Image upload"}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => onPhotoChange(e.target.files?.[0] ?? null)}
+                />
+              </label>
+              {photo && (
+                <button
+                  type="button"
+                  onClick={() => onPhotoChange(null)}
+                  className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-400/10"
+                  aria-label="Remove image"
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+            {photoError && <p className="text-xs text-red-400">{photoError}</p>}
+          </label>
+        </div>
+
+        <label className="space-y-1.5 block">
+          <span className={labelCls}>Matn</span>
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={10}
+            maxLength={3500}
+            className={`${inputCls} resize-none leading-6`}
+          />
+        </label>
+
+        <div className="flex flex-wrap gap-2">
+          {EMOJIS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              onClick={() => addEmoji(emoji)}
+              className="h-8 w-8 rounded-lg border border-border bg-muted/20 text-sm hover:border-primary/50 hover:bg-primary/10"
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-4">
+          <label className="space-y-1.5">
+            <span className={labelCls}>Button text</span>
+            <input
+              value={buttonText}
+              onChange={(e) => setButtonText(e.target.value)}
+              maxLength={64}
+              className={inputCls}
+            />
+          </label>
+          <label className="space-y-1.5">
+            <span className={labelCls}>Button URL</span>
+            <div className="relative">
+              <Link2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={buttonUrl}
+                onChange={(e) => setButtonUrl(e.target.value)}
+                maxLength={512}
+                className={`${inputCls} pl-9`}
+              />
+            </div>
+          </label>
+        </div>
+
+        <div className="grid lg:grid-cols-[1fr_220px] gap-4 items-end">
+          <div className="grid sm:grid-cols-3 gap-2">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Users size={14} />
+                Audience
+              </div>
+              <div className="mt-1 text-base font-semibold text-foreground">{selectedCount}</div>
+              <div className="text-[11px] text-muted-foreground">{AUDIENCE_LABELS[audience]}</div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <div className="text-xs text-muted-foreground">Length</div>
+              <div className={`mt-1 text-base font-semibold ${estimatedLength > MESSAGE_LIMIT ? "text-red-400" : "text-foreground"}`}>
+                {estimatedLength}/{MESSAGE_LIMIT}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                {usesFollowupMessage ? "photo + message" : "single message"}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <div className="text-xs text-muted-foreground">Status</div>
+              <div className={`mt-1 text-sm font-semibold ${canSend ? "text-emerald-400" : "text-amber-400"}`}>
+                {canSend ? "Ready" : "Draft"}
+              </div>
+              <div className="text-[11px] text-muted-foreground">confirm: SEND</div>
+            </div>
+          </div>
+
+          <label className="space-y-1.5">
+            <span className={labelCls}>Tasdiqlash</span>
+            <input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder="SEND"
+              className={inputCls}
+            />
+          </label>
+        </div>
+
+        {(hasButtonHalf || !urlIsSafe || estimatedLength > MESSAGE_LIMIT || sendMutation.error) && (
+          <div className="rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-xs text-red-300 flex gap-2">
+            <AlertTriangle size={15} className="shrink-0" />
+            <div>
+              {hasButtonHalf && <p>Button text va URL ikkalasi ham to'ldirilishi kerak.</p>}
+              {!urlIsSafe && <p>URL http://, https:// yoki tg:// bilan boshlanishi kerak.</p>}
+              {estimatedLength > MESSAGE_LIMIT && <p>Matn Telegram limiti uchun juda uzun.</p>}
+              {sendMutation.error && (
+                <p>{(sendMutation.error as any)?.response?.data?.detail || "Broadcast yuborilmadi."}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Sparkles size={14} className="text-primary" />
+            <span>Rasm, link button, emoji va paragraphlar Telegram formatida ketadi.</span>
+          </div>
+          <button
+            disabled={!canSend}
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50 hover:bg-primary/90"
+          >
+            <Send size={15} />
+            {sendMutation.isPending ? "Yuborilmoqda..." : "Broadcast yuborish"}
+          </button>
+        </div>
+      </form>
+
+      <aside className="space-y-4">
+        <div className={`${cardCls} overflow-hidden`}>
+          <div className="border-b border-border p-4 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Telegram preview</h3>
+            <span className="text-[11px] text-muted-foreground">{AUDIENCE_LABELS[audience]}</span>
+          </div>
+          <div className="bg-[#0f1b28] p-4">
+            <div className="max-w-[360px] rounded-lg rounded-bl-sm bg-[#1f2f3f] overflow-hidden shadow-lg">
+              {previewUrl && <img src={previewUrl} alt="" className="w-full aspect-video object-cover bg-muted" />}
+              <div className="p-4 space-y-3">
+                <h3 className="text-base font-semibold text-white leading-snug">{title || "Sarlavha"}</h3>
+                <div className="space-y-3">
+                  {(paragraphs.length ? paragraphs : ["Xabar matni"]).map((p, i) => (
+                    <p key={i} className="text-sm text-slate-100/90 leading-6 whitespace-pre-line break-words">
+                      {p}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {buttonText && buttonUrl && (
+              <div className="mt-2 max-w-[360px] rounded-lg bg-[#1f2f3f] px-3 py-2.5 text-center text-sm font-semibold text-white">
+                {buttonText}
+              </div>
+            )}
+            {usesFollowupMessage && (
+              <div className="mt-3 max-w-[360px] rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-100">
+                Rasm caption limiti oshgani uchun matn alohida xabar bo'lib ketadi.
+              </div>
+            )}
+          </div>
+        </div>
+        {result && <ResultBox result={result} />}
+      </aside>
+    </div>
+  );
+}

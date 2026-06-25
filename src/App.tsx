@@ -11,10 +11,13 @@ import Sessions from "@/pages/Sessions";
 import Questions from "@/pages/Questions";
 import Admins from "@/pages/Admins";
 import Feedback from "@/pages/Feedback";
+import Broadcast from "@/pages/Broadcast";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
+
+const routerBasename = import.meta.env.BASE_URL.replace(/\/+$/, "") || undefined;
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -30,7 +33,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="dark">
-        <BrowserRouter>
+        <BrowserRouter basename={routerBasename}>
           <Routes>
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -40,6 +43,7 @@ export default function App() {
               <Route path="sessions" element={<Sessions />} />
               <Route path="questions" element={<Questions />} />
               <Route path="feedback" element={<Feedback />} />
+              <Route path="broadcast" element={<Broadcast />} />
               <Route path="admins" element={<Admins />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

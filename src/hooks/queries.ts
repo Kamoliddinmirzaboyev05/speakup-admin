@@ -19,6 +19,7 @@ export const queryKeys = {
   groups: ["groups"] as const,
   questions: ["questions"] as const,
   feedback: ["feedback"] as const,
+  broadcast: ["broadcast"] as const,
 };
 
 export const useStats = () =>
