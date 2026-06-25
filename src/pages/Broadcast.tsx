@@ -5,6 +5,7 @@ import {
   ImagePlus,
   Link2,
   Megaphone,
+  Search,
   Send,
   Sparkles,
   Users,
@@ -17,6 +18,8 @@ import {
   type BroadcastAudienceCounts,
   type BroadcastResult,
 } from "@/services/broadcast";
+import { adminService } from "@/services/admin";
+import type { AdminUser } from "@/types";
 
 const MINIAPP_FIND_URL = "https://speakupapi.webportfolio.uz?find=1";
 const MAX_PHOTO_MB = 6;
@@ -34,6 +37,7 @@ const AUDIENCE_LABELS: Record<BroadcastAudience, string> = {
   onboarded: "Onboardingdan o'tganlar",
   not_onboarded: "Onboardingdan o'tmaganlar",
   all: "Barcha foydalanuvchilar",
+  selected: "Tanlangan foydalanuvchilar",
 };
 
 const TEMPLATES = [
@@ -90,7 +94,12 @@ function splitParagraphs(text: string) {
 }
 
 function countForAudience(counts: BroadcastAudienceCounts | undefined, audience: BroadcastAudience) {
+  if (audience === "selected") return 0;
   return counts ? counts[audience] : 0;
+}
+
+function userDisplayName(user: AdminUser) {
+  return user.first_name || (user.username ? `@${user.username}` : `#${user.id}`);
 }
 
 function isSafeButtonUrl(url: string) {
@@ -146,11 +155,19 @@ export default function Broadcast() {
   const [photoError, setPhotoError] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [result, setResult] = useState<BroadcastResult | null>(null);
+  const [userSearch, setUserSearch] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<AdminUser[]>([]);
 
   const countsQuery = useQuery({
     queryKey: ["broadcast", "audience-counts"],
     queryFn: broadcastService.counts,
     staleTime: 20_000,
+  });
+  const usersQuery = useQuery({
+    queryKey: ["broadcast", "user-search", userSearch],
+    queryFn: () => adminService.getUsers({ search: userSearch || undefined, limit: 8, offset: 0 }),
+    enabled: audience === "selected",
+    staleTime: 10_000,
   });
 
   const previewUrl = useMemo(() => (photo ? URL.createObjectURL(photo) : ""), [photo]);
@@ -161,7 +178,7 @@ export default function Broadcast() {
   }, [previewUrl]);
 
   const paragraphs = splitParagraphs(body);
-  const selectedCount = countForAudience(countsQuery.data, audience);
+  const selectedCount = audience === "selected" ? selectedUsers.length : countForAudience(countsQuery.data, audience);
   const estimatedLength = htmlLength(title, body);
   const usesFollowupMessage = Boolean(photo) && estimatedLength > CAPTION_LIMIT;
   const hasButtonHalf = Boolean(buttonText.trim()) !== Boolean(buttonUrl.trim());
@@ -178,6 +195,7 @@ export default function Broadcast() {
         button_text: buttonText,
         button_url: buttonUrl,
         button_mode: buttonMode,
+        selected_user_ids: audience === "selected" ? selectedUsers.map((user) => user.id) : undefined,
         photo,
       }),
     onSuccess: (data) => {
@@ -194,6 +212,7 @@ export default function Broadcast() {
     !hasButtonHalf &&
     urlIsSafe &&
     webAppUrlIsSafe &&
+    (audience !== "selected" || selectedUsers.length > 0) &&
     !photoError &&
     confirmOk &&
     !sendMutation.isPending;
@@ -210,6 +229,14 @@ export default function Broadcast() {
 
   const addEmoji = (emoji: string) => {
     setBody((current) => `${current}${current.endsWith(" ") || current.endsWith("\n") ? "" : " "}${emoji}`);
+  };
+
+  const addSelectedUser = (user: AdminUser) => {
+    setSelectedUsers((current) => current.some((item) => item.id === user.id) ? current : [...current, user]);
+  };
+
+  const removeSelectedUser = (id: number) => {
+    setSelectedUsers((current) => current.filter((user) => user.id !== id));
   };
 
   const onPhotoChange = (file: File | null) => {
@@ -260,8 +287,8 @@ export default function Broadcast() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 min-w-[260px]">
-            {(["onboarded", "not_onboarded", "all"] as BroadcastAudience[]).map((key) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 min-w-[260px]">
+            {(["onboarded", "not_onboarded", "selected", "all"] as BroadcastAudience[]).map((key) => (
               <button
                 key={key}
                 type="button"
@@ -272,12 +299,92 @@ export default function Broadcast() {
                     : "border-border bg-muted/20 text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <div className="text-sm font-bold font-mono">{countsQuery.isLoading ? "..." : countForAudience(countsQuery.data, key)}</div>
-                <div className="text-[10px] leading-tight">{key === "not_onboarded" ? "not onboarded" : key}</div>
+                <div className="text-sm font-bold font-mono">
+                  {key === "selected" ? selectedUsers.length : countsQuery.isLoading ? "..." : countForAudience(countsQuery.data, key)}
+                </div>
+                <div className="text-[10px] leading-tight">
+                  {key === "not_onboarded" ? "not onboarded" : key}
+                </div>
               </button>
             ))}
           </div>
         </div>
+
+        {audience === "selected" && (
+          <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
+            <label className="space-y-1.5 block">
+              <span className={labelCls}>User qidirish</span>
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  placeholder="Ism, username yoki Telegram ID"
+                  className={`${inputCls} pl-9`}
+                />
+              </div>
+            </label>
+
+            <div className="grid lg:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <div className="text-[11px] font-medium text-muted-foreground">Natijalar</div>
+                <div className="max-h-48 overflow-y-auto space-y-1.5">
+                  {(usersQuery.data?.items ?? []).map((user) => {
+                    const selected = selectedUsers.some((item) => item.id === user.id);
+                    return (
+                      <button
+                        key={user.id}
+                        type="button"
+                        disabled={selected}
+                        onClick={() => addSelectedUser(user)}
+                        className="w-full flex items-center justify-between gap-3 rounded-lg border border-border bg-background/40 px-3 py-2 text-left disabled:opacity-45 hover:border-primary/50"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm text-foreground">{userDisplayName(user)}</span>
+                          <span className="block truncate text-[11px] text-muted-foreground">
+                            ID: {user.telegram_id}{user.username ? ` · @${user.username}` : ""}
+                          </span>
+                        </span>
+                        <span className="text-[11px] text-primary">{selected ? "selected" : "add"}</span>
+                      </button>
+                    );
+                  })}
+                  {usersQuery.isLoading && <div className="text-xs text-muted-foreground">Qidirilmoqda...</div>}
+                  {!usersQuery.isLoading && (usersQuery.data?.items ?? []).length === 0 && (
+                    <div className="text-xs text-muted-foreground">User topilmadi.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-[11px] font-medium text-muted-foreground">Tanlanganlar</div>
+                <div className="min-h-24 rounded-lg border border-border bg-background/40 p-2 space-y-1.5">
+                  {selectedUsers.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1.5">
+                      <span className="min-w-0">
+                        <span className="block truncate text-xs text-foreground">{userDisplayName(user)}</span>
+                        <span className="block truncate text-[10px] text-muted-foreground">ID: {user.telegram_id}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeSelectedUser(user.id)}
+                        className="shrink-0 text-muted-foreground hover:text-red-400"
+                        aria-label="Remove selected user"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                  {selectedUsers.length === 0 && (
+                    <div className="text-xs text-muted-foreground p-2">
+                      Kamida bitta user tanlang.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-[1fr_260px] gap-4">
           <label className="space-y-1.5">

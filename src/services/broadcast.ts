@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/client";
 
-export type BroadcastAudience = "all" | "onboarded" | "not_onboarded";
+export type BroadcastAudience = "all" | "onboarded" | "not_onboarded" | "selected";
 
 export interface BroadcastInput {
   audience: BroadcastAudience;
@@ -9,6 +9,7 @@ export interface BroadcastInput {
   button_text?: string;
   button_url?: string;
   button_mode?: "url" | "web_app";
+  selected_user_ids?: number[];
   photo?: File | null;
 }
 
@@ -37,6 +38,7 @@ export const broadcastService = {
     if (input.button_text?.trim()) fd.append("button_text", input.button_text.trim());
     if (input.button_url?.trim()) fd.append("button_url", input.button_url.trim());
     if (input.button_mode) fd.append("button_mode", input.button_mode);
+    input.selected_user_ids?.forEach((id) => fd.append("selected_user_ids", String(id)));
     if (input.photo) fd.append("photo", input.photo);
 
     const res = await apiClient.post<BroadcastResult>("/api/admin/broadcast", fd, {
