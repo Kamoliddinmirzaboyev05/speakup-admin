@@ -20,13 +20,12 @@ import {
 } from "@/services/broadcast";
 import { adminService } from "@/services/admin";
 import type { AdminUser } from "@/types";
+import { TEMPLATES, type ButtonMode } from "./broadcastTemplates";
 
-const MINIAPP_FIND_URL = "https://speakupapi.webportfolio.uz?find=1";
 const MAX_PHOTO_MB = 6;
 const MAX_PHOTO_BYTES = MAX_PHOTO_MB * 1024 * 1024;
 const CAPTION_LIMIT = 1024;
 const MESSAGE_LIMIT = 3900;
-type ButtonMode = "web_app" | "url";
 
 const inputCls =
   "w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-primary/70 disabled:opacity-60";
@@ -39,53 +38,6 @@ const AUDIENCE_LABELS: Record<BroadcastAudience, string> = {
   all: "Barcha foydalanuvchilar",
   selected: "Tanlangan foydalanuvchilar",
 };
-
-const TEMPLATES = [
-  {
-    id: "practice",
-    label: "Practice",
-    icon: "🎙",
-    title: "🎙 Bugun speaking practice qilamizmi?",
-    body:
-      "SpeakUp sizni real hamroh bilan tez ulaydi. 10 daqiqalik suhbat ham talaffuz, fluency va confidence uchun katta qadam.\n\nBugun bitta suhbat qilib, ingliz tilingizni jonli mashq qiling.",
-    buttonText: "🎙 Hamroh topish",
-    buttonUrl: MINIAPP_FIND_URL,
-    buttonMode: "web_app" as ButtonMode,
-  },
-  {
-    id: "news",
-    label: "Yangilik",
-    icon: "✨",
-    title: "✨ SpeakUp yangilandi",
-    body:
-      "Bugun botimizda yangi imkoniyatlar ishga tushdi. Endi speaking practice qilish yanada tezroq, qulayroq va jonliroq.\n\nIlovani ochib, o'zingiz sinab ko'ring.",
-    buttonText: "🚀 Ilovani ochish",
-    buttonUrl: MINIAPP_FIND_URL,
-    buttonMode: "web_app" as ButtonMode,
-  },
-  {
-    id: "promo",
-    label: "Reklama",
-    icon: "🔥",
-    title: "🔥 Speaking uchun bugungi chaqiriq",
-    body:
-      "Ingliz tilida erkin gapirish kitob o'qish bilan emas, real suhbat bilan ochiladi.\n\nBugun SpeakUp orqali hamroh toping va kamida 10 daqiqa gapiring. Kichik odat katta natija beradi.",
-    buttonText: "🔥 Boshlash",
-    buttonUrl: MINIAPP_FIND_URL,
-    buttonMode: "web_app" as ButtonMode,
-  },
-  {
-    id: "reminder",
-    label: "Eslatma",
-    icon: "⏰",
-    title: "⏰ Bugungi speaking vaqti keldi",
-    body:
-      "Agar bugun 10 daqiqa practice qilsangiz, kechagidan kuchliroq bo'lasiz.\n\nSpeakUp sizga darajangizga yaqin hamroh topishga yordam beradi.",
-    buttonText: "🎯 Practice qilish",
-    buttonUrl: MINIAPP_FIND_URL,
-    buttonMode: "web_app" as ButtonMode,
-  },
-];
 
 const EMOJIS = ["🎙", "🔥", "✨", "🚀", "✅", "🎯", "📣", "💬", "⭐", "⏰"];
 
@@ -146,10 +98,10 @@ function ResultBox({ result }: { result: BroadcastResult }) {
 
 export default function Broadcast() {
   const [audience, setAudience] = useState<BroadcastAudience>("onboarded");
-  const [title, setTitle] = useState(TEMPLATES[0].title);
-  const [body, setBody] = useState(TEMPLATES[0].body);
-  const [buttonText, setButtonText] = useState(TEMPLATES[0].buttonText);
-  const [buttonUrl, setButtonUrl] = useState(TEMPLATES[0].buttonUrl);
+  const [title, setTitle] = useState<string>(TEMPLATES[0].title);
+  const [body, setBody] = useState<string>(TEMPLATES[0].body);
+  const [buttonText, setButtonText] = useState<string>(TEMPLATES[0].buttonText);
+  const [buttonUrl, setButtonUrl] = useState<string>(TEMPLATES[0].buttonUrl);
   const [buttonMode, setButtonMode] = useState<ButtonMode>(TEMPLATES[0].buttonMode);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState("");
@@ -223,6 +175,7 @@ export default function Broadcast() {
     setButtonText(template.buttonText);
     setButtonUrl(template.buttonUrl);
     setButtonMode(template.buttonMode);
+    if ("audience" in template && template.audience) setAudience(template.audience);
     setConfirmText("");
     setResult(null);
   };
