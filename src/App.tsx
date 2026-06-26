@@ -12,6 +12,7 @@ import Questions from "@/pages/Questions";
 import Admins from "@/pages/Admins";
 import Feedback from "@/pages/Feedback";
 import Broadcast from "@/pages/Broadcast";
+import Surveys from "@/pages/Surveys";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="questions" element={<Questions />} />
               <Route path="feedback" element={<Feedback />} />
               <Route path="broadcast" element={<Broadcast />} />
+              <Route path="surveys" element={<Surveys />} />
               <Route path="admins" element={<Admins />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

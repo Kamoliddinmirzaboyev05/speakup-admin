@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router";
 import {
   LayoutDashboard, Users, Trophy, Mic, LogOut, ChevronLeft, ChevronRight,
-  Menu, X, Bot, ShieldCheck, BookOpen, MessageSquare, Send,
+  Menu, X, Bot, ShieldCheck, BookOpen, MessageSquare, Send, ListChecks,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 
@@ -14,6 +14,7 @@ const NAV = [
   { to: "/questions", icon: BookOpen, label: "Questions" },
   { to: "/feedback", icon: MessageSquare, label: "Reviews" },
   { to: "/broadcast", icon: Send, label: "Broadcast" },
+  { to: "/surveys", icon: ListChecks, label: "Surveys" },
   { to: "/admins", icon: ShieldCheck, label: "Admins" },
 ];
 
@@ -25,6 +26,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/questions": "Questions (IELTS)",
   "/feedback": "Reviews",
   "/broadcast": "Broadcast",
+  "/surveys": "Surveys",
   "/admins": "Admins",
 };
 
