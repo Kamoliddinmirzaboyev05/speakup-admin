@@ -52,22 +52,86 @@ function Stat({ label, value, tone = "default" }: { label: string; value: string
   );
 }
 
-function SurveyResults({ survey }: { survey: AdminSurvey }) {
+function PollPreview({
+  question,
+  options,
+  audience,
+}: {
+  question: string;
+  options: string[];
+  audience: SurveyAudience;
+}) {
   return (
-    <div className={`${cardCls} p-4 space-y-3`}>
-      <div className="flex items-center gap-2">
-        <BarChart3 size={16} className="text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">Natijalar</h3>
+    <div className="rounded-lg border border-primary/30 bg-background/70 overflow-hidden">
+      <div className="px-4 py-3 border-b border-border bg-primary/10">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+            Native Telegram poll
+          </span>
+          <span className="text-[11px] text-muted-foreground">single choice</span>
+        </div>
+        <div className="mt-2 text-sm font-semibold text-foreground leading-snug">
+          {question.trim() || DEFAULT_QUESTION}
+        </div>
       </div>
-      <div className="space-y-3">
+      <div className="p-3 space-y-2">
+        {options.length === 0 && (
+          <div className="rounded-lg border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
+            Javob variantlarini yozing.
+          </div>
+        )}
+        {options.map((option, index) => (
+          <div
+            key={`${option}-${index}`}
+            className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5"
+          >
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-primary/70 text-[10px] font-bold text-primary">
+              {index + 1}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+              {option}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/20 px-4 py-2 text-[11px] text-muted-foreground">
+        <span>{AUDIENCE_LABELS[audience]}</span>
+        <span>{options.length}/6 options</span>
+      </div>
+    </div>
+  );
+}
+
+function SurveyResults({ survey }: { survey: AdminSurvey }) {
+  const topCount = Math.max(1, ...survey.options.map((option) => option.count));
+  return (
+    <div className={`${cardCls} overflow-hidden`}>
+      <div className="border-b border-border bg-muted/20 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <BarChart3 size={16} className="text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">Poll natijalari</h3>
+          </div>
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-300">
+            Telegram poll
+          </span>
+        </div>
+        <div className="mt-2 text-sm font-semibold text-foreground">{survey.question}</div>
+      </div>
+      <div className="space-y-3 p-4">
         {survey.options.map((option) => (
-          <div key={option.id} className="space-y-1.5">
-            <div className="flex justify-between gap-3 text-xs">
-              <span className="text-foreground">{option.text}</span>
-              <span className="font-mono text-muted-foreground">{option.count} · {option.percent}%</span>
+          <div key={option.id} className="rounded-lg border border-border bg-background/40 p-3">
+            <div className="flex items-start justify-between gap-3 text-xs">
+              <span className="font-medium text-foreground">{option.text}</span>
+              <span className="shrink-0 font-mono text-muted-foreground">
+                {option.count} · {option.percent}%
+              </span>
             </div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <div className="h-full bg-primary" style={{ width: `${Math.min(option.percent, 100)}%` }} />
+            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${Math.max(4, Math.min((option.count / topCount) * 100, 100))}%` }}
+              />
             </div>
           </div>
         ))}
@@ -346,20 +410,28 @@ export default function Surveys() {
           </div>
         )}
 
-        <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
-          <div className="text-xs text-muted-foreground">
-            Telegram preview: <span className="text-foreground">❓ {question}</span>
-          </div>
+        <div className="space-y-3">
+          <PollPreview
+            question={question}
+            options={normalizedOptions}
+            audience={audience}
+          />
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Users size={14} />
-            {AUDIENCE_LABELS[audience]} · {normalizedOptions.length} options
+            Userlar poll ichida javobini tanlagandan keyin belgilangan holatda ko'radi.
           </div>
-          <input
-            value={confirmText}
-            onChange={(e) => setConfirmText(e.target.value)}
-            placeholder='Type "SEND" to confirm'
-            className={inputCls}
-          />
+          <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+              <span>Yuborishni tasdiqlash</span>
+              <span>{AUDIENCE_LABELS[audience]}</span>
+            </div>
+            <input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder='Type "SEND" to confirm'
+              className={inputCls}
+            />
+          </div>
         </div>
 
         {createMutation.error && (
@@ -417,7 +489,7 @@ export default function Surveys() {
             <SurveyResults survey={detail} />
             <div className="flex items-center gap-2 text-xs text-emerald-400">
               <CheckCircle2 size={14} />
-              {detail.status}
+              {detail.status} · Native Telegram poll
             </div>
             <ResponsesTable survey={detail} />
           </>
