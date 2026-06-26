@@ -77,3 +77,42 @@ export interface AdminBroadcastHistory {
   failed: number;
   created_at: string;
 }
+
+export interface AdminCallStatBucket {
+  conn_type: string;
+  count: number;
+  avg_rtt_ms: number | null;
+  avg_loss_pct: number | null;
+}
+
+export interface AdminCallStatRow {
+  id: number;
+  user_id: number | null;
+  success: boolean;
+  conn_type: string;
+  rtt_ms: number | null;
+  jitter_ms: number | null;
+  loss_pct: number | null;
+  duration_sec: number | null;
+  connect_ms: number | null;
+  created_at: string;
+}
+
+export interface AdminCallStatsSummary {
+  days: number;
+  total: number;
+  success: number;
+  failed: number;
+  success_pct: number;
+  relay: number;
+  direct: number;
+  relay_pct: number;
+  avg_rtt_ms: number | null;
+  avg_rtt_relay_ms: number | null;
+  avg_rtt_direct_ms: number | null;
+  avg_loss_pct: number | null;
+  avg_duration_sec: number | null;
+  avg_connect_ms: number | null;
+  buckets: AdminCallStatBucket[];
+  recent: AdminCallStatRow[];
+}

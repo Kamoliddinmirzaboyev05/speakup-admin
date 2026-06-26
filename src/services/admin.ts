@@ -8,6 +8,7 @@ import type {
   AdminUserList,
   AdminSessionList,
   AdminBroadcastHistory,
+  AdminCallStatsSummary,
 } from "@/types";
 
 export interface UserQuery {
@@ -29,6 +30,9 @@ export const adminService = {
 
   getBroadcasts: (limit = 10) =>
     api.get<AdminBroadcastHistory[]>("/api/admin/broadcasts", { limit }),
+
+  getCallStats: (days = 7) =>
+    api.get<AdminCallStatsSummary>("/api/admin/call-stats/summary", { days }),
 
   // Profile photo is auth-gated, so <img src> can't load it directly — fetch
   // the bytes with the Bearer token and wrap them in an object URL.

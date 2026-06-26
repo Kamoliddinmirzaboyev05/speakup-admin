@@ -21,6 +21,7 @@ export const queryKeys = {
   feedback: ["feedback"] as const,
   broadcast: ["broadcast"] as const,
   broadcasts: ["broadcasts"] as const,
+  callStats: ["call-stats"] as const,
 };
 
 export const useStats = () =>
@@ -50,6 +51,12 @@ export const useBroadcasts = (limit?: number) =>
   useQuery({
     queryKey: [...queryKeys.broadcasts, limit ?? 10],
     queryFn: () => adminService.getBroadcasts(limit),
+  });
+
+export const useCallStats = (days?: number) =>
+  useQuery({
+    queryKey: [...queryKeys.callStats, days ?? 7],
+    queryFn: () => adminService.getCallStats(days),
   });
 
 // ── Admin accounts ───────────────────────────────────────────────────────────
