@@ -2,8 +2,11 @@ import { useMemo, useState } from "react";
 import {
   BarChart3,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   ListChecks,
   Plus,
+  RefreshCw,
   Search,
   Send,
   Trash2,
@@ -228,6 +231,7 @@ export default function Surveys() {
   const [userSearch, setUserSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<AdminUser[]>([]);
   const [selectedSurveyId, setSelectedSurveyId] = useState<number | null>(null);
+  const [isComposerOpen, setIsComposerOpen] = useState(true);
 
   const surveys = useQuery({
     queryKey: ["surveys"],
@@ -286,20 +290,47 @@ export default function Surveys() {
   };
 
   const detail = selectedSurvey.data ?? surveys.data?.[0] ?? null;
+  const isRefreshing = surveys.isFetching || selectedSurvey.isFetching;
+  const refreshSurveyData = () => {
+    qc.invalidateQueries({ queryKey: ["surveys"] });
+    if (detail) {
+      qc.invalidateQueries({ queryKey: ["surveys", detail.id] });
+      qc.invalidateQueries({ queryKey: ["surveys", detail.id, "responses"] });
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_520px] gap-5">
       <form
-        className={`${cardCls} p-5 space-y-5`}
+        className={`${cardCls} overflow-hidden`}
         onSubmit={(e) => {
           e.preventDefault();
           if (canSend) createMutation.mutate();
         }}
       >
-        <div className="flex items-center gap-2">
-          <Send size={18} className="text-primary" />
-          <h2 className="text-base font-semibold text-foreground">So'rovnoma yuborish</h2>
-        </div>
+        <button
+          type="button"
+          onClick={() => setIsComposerOpen((open) => !open)}
+          className="flex w-full items-center justify-between gap-3 border-b border-border bg-muted/20 p-4 text-left hover:bg-muted/30"
+        >
+          <span className="flex min-w-0 items-center gap-2">
+            <Send size={18} className="shrink-0 text-primary" />
+            <span className="min-w-0">
+              <span className="block text-base font-semibold text-foreground">So'rovnoma yuborish</span>
+              <span className="block truncate text-xs text-muted-foreground">
+                Native Telegram poll · {AUDIENCE_LABELS[audience]} · {normalizedOptions.length}/6 options
+              </span>
+            </span>
+          </span>
+          {isComposerOpen ? (
+            <ChevronUp size={18} className="shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronDown size={18} className="shrink-0 text-muted-foreground" />
+          )}
+        </button>
+
+        {isComposerOpen && (
+          <div className="space-y-5 p-5">
 
         <label className="space-y-1.5 block">
           <span className={labelCls}>Savol</span>
@@ -448,13 +479,26 @@ export default function Surveys() {
           <Send size={16} />
           {createMutation.isPending ? "Sending..." : "Send survey"}
         </button>
+          </div>
+        )}
       </form>
 
       <div className="space-y-5">
         <div className={cardCls}>
-          <div className="p-4 border-b border-border flex items-center gap-2">
-            <ListChecks size={16} className="text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">So'rovnomalar</h3>
+          <div className="p-4 border-b border-border flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <ListChecks size={16} className="text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">So'rovnomalar</h3>
+            </div>
+            <button
+              type="button"
+              onClick={refreshSurveyData}
+              disabled={isRefreshing}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/20 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+            >
+              <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} />
+              Refresh
+            </button>
           </div>
           <div className="max-h-80 overflow-y-auto divide-y divide-border/60">
             {(surveys.data ?? []).map((survey) => (
@@ -491,6 +535,15 @@ export default function Surveys() {
               <CheckCircle2 size={14} />
               {detail.status} · Native Telegram poll
             </div>
+            <button
+              type="button"
+              onClick={refreshSurveyData}
+              disabled={isRefreshing}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-muted/20 px-3 py-2 text-sm text-foreground hover:bg-muted/30 disabled:opacity-50"
+            >
+              <RefreshCw size={15} className={isRefreshing ? "animate-spin" : ""} />
+              Natijalarni yangilash
+            </button>
             <ResponsesTable survey={detail} />
           </>
         )}
