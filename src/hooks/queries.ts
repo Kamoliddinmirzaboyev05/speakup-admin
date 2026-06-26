@@ -20,6 +20,7 @@ export const queryKeys = {
   questions: ["questions"] as const,
   feedback: ["feedback"] as const,
   broadcast: ["broadcast"] as const,
+  broadcasts: ["broadcasts"] as const,
 };
 
 export const useStats = () =>
@@ -43,6 +44,12 @@ export const useSessions = (params?: { limit?: number; offset?: number }) =>
   useQuery({
     queryKey: [...queryKeys.sessions, params ?? {}],
     queryFn: () => adminService.getSessions(params),
+  });
+
+export const useBroadcasts = (limit?: number) =>
+  useQuery({
+    queryKey: [...queryKeys.broadcasts, limit ?? 10],
+    queryFn: () => adminService.getBroadcasts(limit),
   });
 
 // ── Admin accounts ───────────────────────────────────────────────────────────

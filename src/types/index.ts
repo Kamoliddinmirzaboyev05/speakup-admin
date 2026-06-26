@@ -66,3 +66,14 @@ export interface Feedback {
   approved: boolean;
   created_at: string;
 }
+
+export interface AdminBroadcastHistory {
+  id: number;
+  title: string;
+  audience: string;
+  has_photo: boolean;
+  eligible: number;
+  sent: number;
+  failed: number;
+  created_at: string;
+}

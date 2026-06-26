@@ -300,7 +300,44 @@ export default function Surveys() {
   };
 
   return (
-    <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_520px] gap-5">
+    <div className="space-y-5">
+      {detail && (
+        <div className={`${cardCls} p-4 flex flex-col gap-4 md:flex-row md:items-center md:gap-6`}>
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <BarChart3 size={17} />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                So'nggi so'rovnoma natijasi
+              </div>
+              <div className="truncate text-sm font-semibold text-foreground">{detail.question}</div>
+              <div className="text-[11px] text-muted-foreground">
+                {AUDIENCE_LABELS[detail.audience]} · {detail.status}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-6 md:shrink-0">
+            <div>
+              <div className="text-2xl font-bold font-mono text-foreground tracking-tight">{detail.response_rate}%</div>
+              <div className="text-[11px] text-muted-foreground">response rate</div>
+            </div>
+            <div className="min-w-[150px]">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span className="font-mono text-foreground">{detail.responses}/{detail.eligible}</span>
+                <span>responses</span>
+              </div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${Math.min(Math.max(detail.response_rate, 0), 100)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_520px] gap-5">
       <form
         className={`${cardCls} overflow-hidden`}
         onSubmit={(e) => {
@@ -547,6 +584,7 @@ export default function Surveys() {
             <ResponsesTable survey={detail} />
           </>
         )}
+      </div>
       </div>
     </div>
   );

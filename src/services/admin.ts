@@ -2,7 +2,13 @@
  * Admin data service — talks to the real backend admin API.
  */
 import { api, apiClient } from "@/api/client";
-import type { AdminStats, AdminUser, AdminUserList, AdminSessionList } from "@/types";
+import type {
+  AdminStats,
+  AdminUser,
+  AdminUserList,
+  AdminSessionList,
+  AdminBroadcastHistory,
+} from "@/types";
 
 export interface UserQuery {
   search?: string;
@@ -20,6 +26,9 @@ export const adminService = {
 
   getSessions: (params?: { limit?: number; offset?: number }) =>
     api.get<AdminSessionList>("/api/admin/sessions", params),
+
+  getBroadcasts: (limit = 10) =>
+    api.get<AdminBroadcastHistory[]>("/api/admin/broadcasts", { limit }),
 
   // Profile photo is auth-gated, so <img src> can't load it directly — fetch
   // the bytes with the Bearer token and wrap them in an object URL.

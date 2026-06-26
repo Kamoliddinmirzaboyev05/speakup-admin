@@ -25,13 +25,13 @@ export default function Sessions() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {["#", "User", "Partner", "Type", "Topic", "Duration", "Started", "Ended"].map((h) => (
+                {["#", "User", "Partner", "Type", "Duration", "Started", "Ended"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-muted-foreground font-medium">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {isLoading && <SkeletonTableRows rows={10} cols={8} />}
+              {isLoading && <SkeletonTableRows rows={10} cols={7} />}
               {!isLoading && items.map((ss) => (
                 <tr key={ss.id} className="border-b border-border/50 hover:bg-muted/20">
                   <td className="px-4 py-3 font-mono text-muted-foreground">{ss.id}</td>
@@ -42,13 +42,12 @@ export default function Sessions() {
                       {ss.is_ai ? "AI" : "Real"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{ss.topic ?? "—"}</td>
                   <td className="px-4 py-3 font-mono text-foreground">{fmtDur(ss.duration_sec)}</td>
                   <td className="px-4 py-3 text-muted-foreground font-mono">{new Date(ss.start_time).toLocaleString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
                   <td className="px-4 py-3 text-muted-foreground font-mono">{ss.end_time ? new Date(ss.end_time).toLocaleString("en", { hour: "2-digit", minute: "2-digit" }) : "—"}</td>
                 </tr>
               ))}
-              {!isLoading && items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No sessions</td></tr>}
+              {!isLoading && items.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No sessions</td></tr>}
             </tbody>
           </table>
         </div>

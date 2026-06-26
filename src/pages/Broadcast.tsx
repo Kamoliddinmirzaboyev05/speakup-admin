@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
+  History,
+  Image as ImageIcon,
   ImagePlus,
   Link2,
   Megaphone,
@@ -19,6 +21,7 @@ import {
   type BroadcastResult,
 } from "@/services/broadcast";
 import { adminService } from "@/services/admin";
+import { useBroadcasts } from "@/hooks/queries";
 import type { AdminUser } from "@/types";
 import { TEMPLATES, type ButtonMode } from "./broadcastTemplates";
 
@@ -43,6 +46,10 @@ const EMOJIS = ["🎙", "🔥", "✨", "🚀", "✅", "🎯", "📣", "💬", "�
 
 function splitParagraphs(text: string) {
   return text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+}
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function countForAudience(counts: BroadcastAudienceCounts | undefined, audience: BroadcastAudience) {
@@ -115,6 +122,8 @@ export default function Broadcast() {
     queryFn: broadcastService.counts,
     staleTime: 20_000,
   });
+  const recentQuery = useBroadcasts(5);
+  const recent = recentQuery.data ?? [];
   const usersQuery = useQuery({
     queryKey: ["broadcast", "user-search", userSearch],
     queryFn: () => adminService.getUsers({ search: userSearch || undefined, limit: 8, offset: 0 }),
@@ -154,6 +163,7 @@ export default function Broadcast() {
       setResult(data);
       setConfirmText("");
       countsQuery.refetch();
+      recentQuery.refetch();
     },
   });
 
@@ -212,7 +222,44 @@ export default function Broadcast() {
   };
 
   return (
-    <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_440px] gap-5">
+    <div className="space-y-5">
+      {recent.length > 0 && (
+        <div className={`${cardCls} overflow-hidden`}>
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/20 p-4">
+            <div className="flex items-center gap-2">
+              <History size={16} className="text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">So'nggi broadcastlar</h3>
+            </div>
+            <span className="text-[11px] text-muted-foreground">oxirgi {recent.length}</span>
+          </div>
+          <div className="divide-y divide-border/60">
+            {recent.map((b) => (
+              <div key={b.id} className="flex items-center gap-3 px-4 py-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/40 text-muted-foreground">
+                  {b.has_photo ? <ImageIcon size={14} /> : <Megaphone size={14} />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-foreground">{b.title}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {AUDIENCE_LABELS[b.audience as BroadcastAudience] ?? b.audience} · {fmtDate(b.created_at)}
+                  </div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="font-mono text-sm text-foreground">
+                    {b.sent}<span className="text-muted-foreground">/{b.eligible}</span>
+                  </div>
+                  {b.failed > 0 ? (
+                    <div className="text-[11px] font-semibold text-amber-400">{b.failed} failed</div>
+                  ) : (
+                    <div className="text-[11px] text-emerald-400">delivered</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_440px] gap-5">
       <form
         className={`${cardCls} p-5 space-y-5`}
         onSubmit={(e) => {
@@ -543,6 +590,7 @@ export default function Broadcast() {
         </div>
         {result && <ResultBox result={result} />}
       </aside>
+      </div>
     </div>
   );
 }
